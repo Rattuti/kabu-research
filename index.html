@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>株式調査ノート</title>
+<style>
+  :root {
+    --bg: #f6f5f2;
+    --panel: #ffffff;
+    --border: #e4ddd0;
+    --text: #2c2620;
+    --muted: #7a7167;
+    --accent: #a87d3a;
+    --accent-dark: #8a6528;
+    --clear: #4f8f6a;
+    --partial: #c99a3f;
+    --miss: #b3546b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 24px;
+  }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  .subtitle { color: var(--muted); margin: 0 0 12px; font-size: 0.9rem; }
+  .layout { display: grid; grid-template-columns: 1fr; gap: 16px; max-width: 1040px; margin: 0 auto; }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .panel h2 { font-size: 1rem; margin: 0 0 4px; }
+  .panel .desc { font-size: 0.82rem; color: var(--muted); margin: 0 0 14px; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .row.between { justify-content: space-between; }
+  select, input[type=text], input[type=number], button {
+    font: inherit;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #fff;
+  }
+  button { cursor: pointer; background: var(--accent); color: #fff; border: none; }
+  button:hover { background: var(--accent-dark); }
+  button.secondary { background: #fff; color: var(--text); border: 1px solid var(--border); }
+  .hint { font-size: 0.8rem; color: var(--muted); margin-top: 8px; }
+  .hint.sync-error { color: var(--miss); }
+  .disclaimer {
+    font-size: 0.78rem; color: var(--muted); background: var(--bg);
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px;
+    margin-top: 10px;
+  }
+
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 10px; }
+  .form-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 0.78rem; color: var(--muted); }
+  .form-grid select, .form-grid input { width: 100%; }
+
+  .criteria-list { display: flex; flex-direction: column; gap: 6px; }
+  .criteria-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
+  .criteria-item input[type=checkbox] { accent-color: var(--clear); flex-shrink: 0; width: 16px; height: 16px; }
+  .chip-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--bg); border-radius: 999px; padding: 4px 6px 4px 12px; font-size: 0.85rem;
+  }
+  .chip .rm { background: none; border: none; color: var(--muted); cursor: pointer; padding: 2px 6px; border-radius: 50%; font-size: 0.8rem; }
+  .chip .rm:hover { color: var(--miss); }
+  .chip.link-chip { padding: 6px 14px; }
+  .chip.link-chip a { color: var(--accent-dark); text-decoration: none; font-weight: 600; }
+  .chip.link-chip a:hover { text-decoration: underline; }
+  .site-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.86rem;
+  }
+  .site-row:last-child { border-bottom: none; }
+  .site-row .site-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .site-row .site-main a { color: var(--accent-dark); font-weight: 600; text-decoration: none; }
+  .site-row .site-main a:hover { text-decoration: underline; }
+  .site-row .site-note { color: var(--muted); font-size: 0.78rem; }
+
+  .table-wrap { max-height: 460px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; margin-top: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+  th, td { text-align: left; padding: 7px 9px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th { color: var(--muted); font-weight: 600; position: sticky; top: 0; background: var(--panel); }
+  td.name-cell { white-space: normal; max-width: 180px; font-weight: 500; }
+  .metric-cell { display: flex; align-items: center; gap: 6px; }
+  .metric-cell input[type=number] { width: 68px; }
+  .metric-flag { font-size: 0.82rem; flex-shrink: 0; }
+  .metric-flag.clear { color: var(--clear); }
+  .metric-flag.miss { color: var(--miss); }
+  .metric-flag.none { color: var(--muted); }
+  .summary-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 999px; font-size: 0.78rem; color: #fff; font-weight: 600;
+  }
+  .status-select { font-size: 0.8rem; padding: 4px 6px; }
+  .rm-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.85rem; padding: 2px 6px; }
+  .rm-btn:hover { color: var(--miss); }
+  .empty { color: var(--muted); text-align: center; padding: 24px 0; font-size: 0.88rem; }
+  .research-link { color: var(--accent-dark); font-size: 0.8rem; text-decoration: none; font-weight: 600; }
+  .research-link:hover { text-decoration: underline; }
+
+  .expand-btn { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.8rem; padding: 2px 4px; white-space: nowrap; }
+  .expand-btn:hover { text-decoration: underline; }
+  .detail-row td { background: var(--bg); padding: 12px 16px; }
+  .detail-block { margin-bottom: 12px; }
+  .detail-block:last-child { margin-bottom: 0; }
+  .detail-label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; }
+
+  /* mobile: tables become stacked cards */
+  @media (max-width: 600px) {
+    body { padding: 14px; }
+    .table-wrap { overflow: visible; max-height: none; border: none; }
+    table, thead, tbody { display: block; width: 100%; }
+    thead { display: none; }
+    tr { display: block; }
+    tbody tr:not(.detail-row) {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+    }
+    td { display: block; width: 100%; border-bottom: none; padding: 6px 0; white-space: normal; }
+    td.name-cell { font-size: 1rem; font-weight: 700; max-width: none; padding-bottom: 8px; margin-bottom: 4px; border-bottom: 1px solid var(--border); }
+    td[data-label]::before {
+      content: attr(data-label);
+      display: block;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+    td select, td input { width: 100%; box-sizing: border-box; }
+    .metric-cell input[type=number] { width: 100%; }
+    .status-select, button { min-height: 40px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <div>
+    <h1>株式調査ノート</h1>
+    <p class="subtitle">銘柄のPER・PBR・配当利回りを記録し、自分の基準で整理します。</p>
+    <p class="hint" id="syncStatus" style="margin-top:0;"></p>
+    <p class="disclaimer">投資助言ではありません。判定は自分で入力した数値と自分の基準を比較しただけです。投資判断は自己責任でお願いします。</p>
+  </div>
+
+  <div class="panel">
+    <h2>数値基準の設定</h2>
+    <p class="desc">PER・PBR・配当利回りの目安値を自分で設定します(適正水準は業種により異なります)。</p>
+    <div class="form-grid">
+      <label>PER基準(以下でクリア)<input type="number" id="perThreshold" placeholder="例: 15"></label>
+      <label>PBR基準(以下でクリア)<input type="number" id="pbrThreshold" placeholder="例: 1"></label>
+      <label>配当利回り基準%(以上でクリア)<input type="number" id="divThreshold" placeholder="例: 3"></label>
+    </div>
+    <button type="button" id="saveThresholdsBtn">基準を保存</button>
+  </div>
+
+  <div class="panel">
+    <h2>自由チェック項目</h2>
+    <p class="desc">数値以外の観点を自由に追加できます(例:「事業内容を理解できる」)。</p>
+    <div class="criteria-list" id="criteriaMasterList" style="margin-bottom:8px;"></div>
+    <div class="row">
+      <input type="text" id="criteriaInput" placeholder="項目を追加">
+      <button type="button" class="secondary" id="addCriteriaBtn">追加</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>銘柄を追加</h2>
+    <div class="form-grid">
+      <label>銘柄名<input type="text" id="stockName" placeholder="例: ○○ホールディングス"></label>
+      <label>コード/ティッカー<input type="text" id="stockCode" placeholder="例: 1234 / AAPL"></label>
+      <label>市場<select id="stockMarket"></select></label>
+    </div>
+    <button type="button" id="addStockBtn">追加</button>
+    <p class="hint" style="margin-top:8px;">追加後、一覧の行から詳細を記録できます。</p>
+  </div>
+
+  <div class="panel">
+    <h2>銘柄一覧</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>銘柄名</th><th>コード/市場</th><th>PER</th><th>PBR</th><th>配当利回り%</th><th>判定</th><th>手動ステータス</th><th>調査</th><th></th><th></th>
+          </tr>
+        </thead>
+        <tbody id="stockBody"></tbody>
+      </table>
+    </div>
+    <div class="empty" id="stockEmpty">まだ銘柄が登録されていません</div>
+  </div>
+
+  <div class="panel">
+    <h2>少額投資・情報サイトを探す</h2>
+    <p class="desc">サービスは変更・終了することがあるため、常に最新が見つかる検索リンクにしています。</p>
+    <div class="chip-list" id="siteSearchLinks"></div>
+  </div>
+
+  <div class="panel">
+    <h2>お気に入りサイト</h2>
+    <p class="desc">自分で見つけたサービス・サイトを登録できます。</p>
+    <div id="siteList" style="margin-bottom:10px;"></div>
+    <div class="form-grid">
+      <label>名称<input type="text" id="siteName" placeholder="例: ○○証券"></label>
+      <label>URL<input type="text" id="siteUrl" placeholder="https://..."></label>
+      <label>メモ(任意)<input type="text" id="siteNote" placeholder="任意"></label>
+    </div>
+    <button type="button" id="addSiteBtn">追加</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- Notion sync ----------
+  var NOTION_ENABLED = !!(window.claude && window.claude.mcp);
+  var NOTION_SERVER = "Notion";
+  var DS = {
+    stocks: { id: "5f5e90fe-7a48-4de8-b296-5b1334a81b76", view: "view://69f999de-5e44-4938-9b16-c38490ea3e66" },
+    thresholds: { id: "5017c69e-b91c-4134-9612-ae6520638f44", view: "view://0fa7ae7e-9141-4056-a244-9a9fd64ac47e" },
+    criteria: { id: "0cb506af-0535-4817-b394-30e26e9dccf0", view: "view://810baee5-57dc-40ca-a8d6-f8dff37b5830" },
+    sites: { id: "6091d042-3463-44e5-9d65-8e4d2465829d", view: "view://9d35f924-4ca2-470d-bc89-3ed20b0a2f72" }
+  };
+
+  // 特定サービスの実際のURLはサービス変更・終了で古くなるリスクがあるため、
+  // 断定的な直リンクは持たず、検索クエリの生成にとどめる。
+  var SITE_SEARCH_CATEGORIES = [
+    "1円から買える株式投資サービス",
+    "単元未満株(ミニ株)の証券会社",
+    "株価・企業情報を調べるサイト",
+    "証券会社の手数料を比較"
+  ];
+  function buildSiteSearchUrl(category) {
+    return "https://www.google.com/search?q=" + encodeURIComponent(category);
+  }
+  var MARKET_OPTIONS = ["日本株", "米国株"];
+  var MANUAL_STATUS_OPTIONS = ["未定", "興味あり", "見送り"];
+  var STATUS_COLOR = { "未定": "#9ca3af", "興味あり": "var(--clear)", "見送り": "var(--miss)" };
+
+  function extractPageId(url) {
+    var m = /([0-9a-f]{32})(?:\?.*)?$/i.exec(url || "");
+    return m ? m[1] : null;
+  }
+
+  // 複数値をテキストプロパティに保存する際のエンコード方式。
+  // JSON.stringify(配列)をそのままテキストプロパティに書き込むと、値が
+  // "[" "]" を含む配列風の文字列として誤認識され、保存時に空文字になって
+  // 消えてしまう不具合を実機検証で確認したため、JSON形式を避け「||」区切りの
+  // 単純なテキストで保存する。
+  function encodeList(arr) {
+    return (arr || []).join("||");
+  }
+  function decodeList(str) {
+    return str ? str.split("||").filter(function (s) { return s; }) : [];
+  }
+
+  function setSyncStatus(text, isError) {
+    var el = document.getElementById("syncStatus");
+    el.textContent = text;
+    el.className = "hint" + (isError ? " sync-error" : "");
+  }
+
+  function queryAllViewRows(viewUrl) {
+    function fetchPage(cursor) {
+      var input = { view_url: viewUrl, page_size: 100 };
+      if (cursor) input.start_cursor = cursor;
+      return window.claude.mcp.callTool(NOTION_SERVER, "notion-query-database-view", input).then(function (res) {
+        var payload = res.payload || {};
+        var rows = payload.results || [];
+        if (payload.has_more && payload.next_cursor) {
+          return fetchPage(payload.next_cursor).then(function (rest) { return rows.concat(rest); });
+        }
+        return rows;
+      });
+    }
+    return fetchPage(null);
+  }
+
+  function notionCreate(dsId, properties) {
+    return window.claude.mcp.callTool(NOTION_SERVER, "notion-create-pages", {
+      parent: { type: "data_source_id", data_source_id: dsId },
+      pages: [{ properties: properties }]
+    });
+  }
+
+  function notionUpdate(pageId, properties) {
+    if (!pageId) return Promise.resolve();
+    return window.claude.mcp.callTool(NOTION_SERVER, "notion-update-page", {
+      page_id: pageId,
+      command: "update_properties",
+      properties: properties
+    });
+  }
+
+  function notionSoftDelete(pageId) {
+    return notionUpdate(pageId, { "削除済み": "__YES__" });
+  }
+
+  // ---------- App state ----------
+  var state = {
+    stocks: [],
+    criteria: [],
+    sites: [],
+    thresholds: { notionId: null, per: null, pbr: null, div: null }
+  };
+  var expandedStocks = {};
+  var nextTempId = 1;
+
+  function formatNum(n) { return (typeof n === "number" && !isNaN(n)) ? n : null; }
+
+  // ---------- Research links (Google検索。特定サイトのURLを直接組み立てると
+  // URL形式の変化で壊れるリスクがあるため、検索リンク生成にとどめる) ----------
+  function buildResearchUrl(code, market) {
+    var q = market === "米国株"
+      ? (code + " stock PER PBR dividend yield")
+      : (code + " 株価 PER PBR 配当利回り");
+    return "https://www.google.com/search?q=" + encodeURIComponent(q);
+  }
+
+  // ---------- Thresholds (singleton row) ----------
+  function thresholdRowToState(row) {
+    var pageId = extractPageId(row.url);
+    return {
+      notionId: pageId,
+      per: typeof row["PER基準"] === "number" ? row["PER基準"] : null,
+      pbr: typeof row["PBR基準"] === "number" ? row["PBR基準"] : null,
+      div: typeof row["配当利回り基準"] === "number" ? row["配当利回り基準"] : null
+    };
+  }
+  function loadThresholds() {
+    return queryAllViewRows(DS.thresholds.view).then(function (rows) {
+      return rows.length ? thresholdRowToState(rows[0]) : { notionId: null, per: null, pbr: null, div: null };
+    });
+  }
+  function saveThresholds() {
+    var t = state.thresholds;
+    if (!NOTION_ENABLED) return;
+    var props = { "設定名": "基準", "PER基準": t.per, "PBR基準": t.pbr, "配当利回り基準": t.div };
+    if (t.notionId) {
+      notionUpdate(t.notionId, props).catch(function (err) {
+        setSyncStatus("基準の同期に失敗しました(" + (err && err.code) + ")", true);
+      });
+    } else {
+      notionCreate(DS.thresholds.id, props).then(function (res) {
+        var created = res.payload && res.payload.pages && res.payload.pages[0];
+        if (created && created.id) t.notionId = created.id;
+      }).catch(function (err) {
+        setSyncStatus("基準の同期に失敗しました(" + (err && err.code) + ")", true);
+      });
+    }
+  }
+
+  // ---------- Custom criteria ----------
+  function criteriaRowToItem(row) {
+    var pageId = extractPageId(row.url);
+    return { id: pageId, notionId: pageId, name: row["項目名"] || "" };
+  }
+  function loadCriteria() {
+    return queryAllViewRows(DS.criteria.view).then(function (rows) {
+      return rows.filter(function (r) { return r["削除済み"] !== "__YES__"; }).map(criteriaRowToItem).filter(function (c) { return c.name; });
+    });
+  }
+
+  // ---------- Favorite sites (ユーザーが自分で見つけたURLを登録) ----------
+  function siteRowToItem(row) {
+    var pageId = extractPageId(row.url);
+    return {
+      id: pageId, notionId: pageId,
+      name: row["名称"] || "",
+      url: row["userDefined:URL"] || "",
+      note: row["メモ"] || ""
+    };
+  }
+  function loadSites() {
+    return queryAllViewRows(DS.sites.view).then(function (rows) {
+      return rows.filter(function (r) { return r["削除済み"] !== "__YES__"; }).map(siteRowToItem).filter(function (s) { return s.name; });
+    });
+  }
+
+  // ---------- Stocks ----------
+  function stockRowToItem(row) {
+    var pageId = extractPageId(row.url);
+    var customChecked = decodeList(row["カスタムチェック"]);
+    return {
+      id: pageId, notionId: pageId,
+      name: row["銘柄名"] || "",
+      code: row["コード"] || "",
+      market: row["市場"] || MARKET_OPTIONS[0],
+      per: formatNum(row["PER"]),
+      pbr: formatNum(row["PBR"]),
+      div: formatNum(row["配当利回り"]),
+      customChecked: customChecked,
+      note: row["メモ"] || "",
+      manualStatus: row["手動ステータス"] || MANUAL_STATUS_OPTIONS[0]
+    };
+  }
+  function stockToProps(s) {
+    return {
+      "銘柄名": s.name, "コード": s.code, "市場": s.market,
+      "PER": s.per, "PBR": s.pbr, "配当利回り": s.div,
+      "カスタムチェック": encodeList(s.customChecked),
+      "メモ": s.note || "", "手動ステータス": s.manualStatus
+    };
+  }
+  function loadStocks() {
+    return queryAllViewRows(DS.stocks.view).then(function (rows) {
+      return rows.filter(function (r) { return r["削除済み"] !== "__YES__"; }).map(stockRowToItem);
+    });
+  }
+
+  function metricFlag(value, threshold, direction) {
+    // direction "le" = 基準以下でクリア, "ge" = 基準以上でクリア
+    if (value === null || threshold === null || threshold === undefined) return "none";
+    return (direction === "le" ? value <= threshold : value >= threshold) ? "clear" : "miss";
+  }
+
+  function numericSummary(s) {
+    var t = state.thresholds;
+    var flags = [
+      metricFlag(s.per, t.per, "le"),
+      metricFlag(s.pbr, t.pbr, "le"),
+      metricFlag(s.div, t.div, "ge")
+    ];
+    var known = flags.filter(function (f) { return f !== "none"; });
+    var clearCount = flags.filter(function (f) { return f === "clear"; }).length;
+    return { clearCount: clearCount, knownCount: known.length, total: 3 };
+  }
+
+  function renderCriteriaMasterList() {
+    var list = document.getElementById("criteriaMasterList");
+    list.innerHTML = "";
+    if (!state.criteria.length) {
+      var empty = document.createElement("span");
+      empty.className = "hint"; empty.style.margin = "0";
+      empty.textContent = "まだチェック項目がありません";
+      list.appendChild(empty);
+      return;
+    }
+    var wrap = document.createElement("div");
+    wrap.className = "chip-list";
+    state.criteria.forEach(function (c) {
+      var chip = document.createElement("div");
+      chip.className = "chip";
+      var label = document.createElement("span");
+      label.textContent = c.name;
+      var rm = document.createElement("button");
+      rm.type = "button"; rm.className = "rm"; rm.textContent = "✕";
+      rm.addEventListener("click", function () {
+        state.criteria = state.criteria.filter(function (x) { return x.id !== c.id; });
+        state.stocks.forEach(function (s) {
+          s.customChecked = (s.customChecked || []).filter(function (n) { return n !== c.name; });
+        });
+        renderAll();
+        if (NOTION_ENABLED) notionSoftDelete(c.notionId).catch(function (err) {
+          setSyncStatus("チェック項目の削除の同期に失敗しました(" + (err && err.code) + ")", true);
+        });
+      });
+      chip.appendChild(label); chip.appendChild(rm);
+      wrap.appendChild(chip);
+    });
+    list.appendChild(wrap);
+  }
+
+  function renderSiteSearchLinks() {
+    var wrap = document.getElementById("siteSearchLinks");
+    wrap.innerHTML = "";
+    SITE_SEARCH_CATEGORIES.forEach(function (category) {
+      var chip = document.createElement("div");
+      chip.className = "chip link-chip";
+      var link = document.createElement("a");
+      link.href = buildSiteSearchUrl(category);
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = category + " →";
+      chip.appendChild(link);
+      wrap.appendChild(chip);
+    });
+  }
+
+  function renderSiteList() {
+    var wrap = document.getElementById("siteList");
+    wrap.innerHTML = "";
+    if (!state.sites.length) {
+      var empty = document.createElement("p");
+      empty.className = "hint"; empty.style.margin = "0";
+      empty.textContent = "まだお気に入りサイトが登録されていません";
+      wrap.appendChild(empty);
+      return;
+    }
+    state.sites.forEach(function (s) {
+      var row = document.createElement("div");
+      row.className = "site-row";
+
+      var main = document.createElement("div");
+      main.className = "site-main";
+      var link = document.createElement("a");
+      link.href = s.url || "#";
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = s.name;
+      main.appendChild(link);
+      if (s.note) {
+        var note = document.createElement("span");
+        note.className = "site-note";
+        note.textContent = s.note;
+        main.appendChild(note);
+      }
+
+      var rm = document.createElement("button");
+      rm.type = "button"; rm.className = "rm-btn"; rm.textContent = "削除";
+      rm.addEventListener("click", function () {
+        state.sites = state.sites.filter(function (x) { return x.id !== s.id; });
+        renderAll();
+        if (NOTION_ENABLED) notionSoftDelete(s.notionId).catch(function (err) {
+          setSyncStatus("お気に入りサイトの削除の同期に失敗しました(" + (err && err.code) + ")", true);
+        });
+      });
+
+      row.appendChild(main); row.appendChild(rm);
+      wrap.appendChild(row);
+    });
+  }
+
+  // ---------- 売却シミュレーション(このブラウザ内の一時的な試算・保存はしない) ----------
+  function todayStr() {
+    return new Date().toISOString().slice(0, 10);
+  }
+  function ensureSellSim(s) {
+    if (!s.sellSim) {
+      s.sellSim = { qty: null, price: null, feeRate: null, settleDays: 2, sellDate: todayStr() };
+    }
+    return s.sellSim;
+  }
+  function addCalendarDays(dateStr, days) {
+    var d = new Date(dateStr + "T00:00:00");
+    if (isNaN(d.getTime())) return null;
+    d.setDate(d.getDate() + (days || 0));
+    return d.toISOString().slice(0, 10);
+  }
+  function buildSellSimBlock(s) {
+    var sim = ensureSellSim(s);
+    var block = document.createElement("div");
+    block.className = "detail-block";
+    var title = document.createElement("span");
+    title.className = "detail-label";
+    title.textContent = "売却シミュレーション(試算・保存されません)";
+    block.appendChild(title);
+
+    var grid = document.createElement("div");
+    grid.className = "form-grid";
+    grid.style.marginTop = "6px";
+
+    function simField(labelText, key, placeholder, type) {
+      var label = document.createElement("label");
+      label.textContent = labelText;
+      var input = document.createElement("input");
+      input.type = type || "number";
+      if (placeholder) input.placeholder = placeholder;
+      input.value = sim[key] != null ? sim[key] : "";
+      input.addEventListener("change", function () {
+        if (type === "date") {
+          sim[key] = input.value || todayStr();
+        } else {
+          sim[key] = input.value === "" ? null : parseFloat(input.value);
+        }
+        renderAll();
+      });
+      label.appendChild(input);
+      grid.appendChild(label);
+    }
+    simField("売却株数", "qty", "例: 100");
+    simField("売却単価(円)", "price", "例: 1500");
+    simField("手数料率%(自分の証券会社の値)", "feeRate", "例: 0.5");
+    simField("受け渡し日数(営業日目安・自分の証券会社の値)", "settleDays", "例: 2");
+    simField("売却予定日", "sellDate", null, "date");
+    block.appendChild(grid);
+
+    var qty = sim.qty || 0;
+    var price = sim.price || 0;
+    var feeRate = sim.feeRate || 0;
+    var gross = qty * price;
+    var fee = gross * (feeRate / 100);
+    var net = gross - fee;
+    var payoutDate = addCalendarDays(sim.sellDate || todayStr(), sim.settleDays || 0);
+
+    var resultWrap = document.createElement("div");
+    resultWrap.style.marginTop = "8px";
+    function resultRow(label, value) {
+      var row = document.createElement("div");
+      row.className = "breakdown-row";
+      var l = document.createElement("span"); l.textContent = label;
+      var v = document.createElement("span"); v.className = "bd-value"; v.textContent = value;
+      row.appendChild(l); row.appendChild(v);
+      resultWrap.appendChild(row);
+    }
+    resultRow("売却金額", "¥" + Math.round(gross).toLocaleString("ja-JP"));
+    resultRow("手数料(概算)", "¥" + Math.round(fee).toLocaleString("ja-JP"));
+    var netRow = document.createElement("div");
+    netRow.className = "breakdown-row bd-total";
+    var netLabel = document.createElement("span"); netLabel.textContent = "手取り額(概算)";
+    var netValue = document.createElement("span"); netValue.className = "bd-value";
+    netValue.textContent = "¥" + Math.round(net).toLocaleString("ja-JP");
+    netRow.appendChild(netLabel); netRow.appendChild(netValue);
+    resultWrap.appendChild(netRow);
+    resultRow("受け取り予定日(目安)", payoutDate || "-");
+    block.appendChild(resultWrap);
+
+    var hint = document.createElement("p");
+    hint.className = "hint";
+    hint.style.margin = "6px 0 0";
+    hint.textContent = "手数料率・受け渡し日数はご利用の証券会社によって異なるため、ご自身で確認した値を入力してください。受け取り予定日は土日祝日を考慮しない単純な日数計算の目安です(一般的な国内株の受け渡しはT+2営業日と言われますが、必ずご自身の証券会社の情報でご確認ください)。";
+    block.appendChild(hint);
+
+    return block;
+  }
+
+  function renderStocks() {
+    var body = document.getElementById("stockBody");
+    body.innerHTML = "";
+    document.getElementById("stockEmpty").style.display = state.stocks.length ? "none" : "block";
+
+    var sorted = state.stocks.slice().sort(function (a, b) {
+      return numericSummary(b).clearCount - numericSummary(a).clearCount;
+    });
+
+    sorted.forEach(function (s) {
+      var tr = document.createElement("tr");
+
+      var tdName = document.createElement("td");
+      tdName.className = "name-cell";
+      tdName.textContent = s.name;
+
+      var tdCodeMarket = document.createElement("td");
+      tdCodeMarket.setAttribute("data-label", "コード/市場");
+      tdCodeMarket.textContent = (s.code || "-") + " / " + s.market;
+
+      function metricCell(label, value, onChange, threshold, direction) {
+        var td = document.createElement("td");
+        td.setAttribute("data-label", label);
+        var wrap = document.createElement("div");
+        wrap.className = "metric-cell";
+        var input = document.createElement("input");
+        input.type = "number";
+        input.value = value != null ? value : "";
+        input.addEventListener("change", function () {
+          var v = input.value === "" ? null : parseFloat(input.value);
+          onChange(v);
+        });
+        var flag = document.createElement("span");
+        var flagState = metricFlag(value, threshold, direction);
+        flag.className = "metric-flag " + flagState;
+        flag.textContent = flagState === "clear" ? "◎" : (flagState === "miss" ? "×" : "-");
+        wrap.appendChild(input); wrap.appendChild(flag);
+        td.appendChild(wrap);
+        return td;
+      }
+
+      var tdPer = metricCell("PER", s.per, function (v) {
+        s.per = v; renderAll();
+        if (NOTION_ENABLED) notionUpdate(s.notionId, { "PER": s.per });
+      }, state.thresholds.per, "le");
+
+      var tdPbr = metricCell("PBR", s.pbr, function (v) {
+        s.pbr = v; renderAll();
+        if (NOTION_ENABLED) notionUpdate(s.notionId, { "PBR": s.pbr });
+      }, state.thresholds.pbr, "le");
+
+      var tdDiv = metricCell("配当利回り%", s.div, function (v) {
+        s.div = v; renderAll();
+        if (NOTION_ENABLED) notionUpdate(s.notionId, { "配当利回り": s.div });
+      }, state.thresholds.div, "ge");
+
+      var tdSummary = document.createElement("td");
+      tdSummary.setAttribute("data-label", "判定");
+      var summary = numericSummary(s);
+      var summaryChip = document.createElement("span");
+      summaryChip.className = "summary-chip";
+      var chipColor = summary.knownCount === 0 ? "#9ca3af"
+        : summary.clearCount === summary.knownCount ? "var(--clear)"
+        : summary.clearCount === 0 ? "var(--miss)" : "var(--partial)";
+      summaryChip.style.background = chipColor;
+      summaryChip.textContent = "数値 " + summary.clearCount + "/" + summary.knownCount;
+      tdSummary.appendChild(summaryChip);
+      if (state.criteria.length) {
+        var criteriaCount = document.createElement("div");
+        criteriaCount.className = "hint";
+        criteriaCount.style.margin = "4px 0 0";
+        criteriaCount.textContent = "チェック " + (s.customChecked || []).length + "/" + state.criteria.length;
+        tdSummary.appendChild(criteriaCount);
+      }
+
+      var tdStatus = document.createElement("td");
+      tdStatus.setAttribute("data-label", "手動ステータス");
+      var statusSelect = document.createElement("select");
+      statusSelect.className = "status-select";
+      MANUAL_STATUS_OPTIONS.forEach(function (o) {
+        var opt = document.createElement("option"); opt.value = o; opt.textContent = o;
+        if (o === s.manualStatus) opt.selected = true;
+        statusSelect.appendChild(opt);
+      });
+      statusSelect.addEventListener("change", function () {
+        s.manualStatus = statusSelect.value;
+        renderAll();
+        if (NOTION_ENABLED) notionUpdate(s.notionId, { "手動ステータス": s.manualStatus });
+      });
+      tdStatus.appendChild(statusSelect);
+      var statusDot = document.createElement("span");
+      statusDot.className = "summary-chip"; statusDot.style.background = STATUS_COLOR[s.manualStatus] || "#999";
+      statusDot.style.marginLeft = "6px"; statusDot.textContent = " ";
+      tdStatus.appendChild(statusDot);
+
+      var tdResearch = document.createElement("td");
+      var researchLink = document.createElement("a");
+      researchLink.className = "research-link";
+      researchLink.href = buildResearchUrl(s.code || s.name, s.market);
+      researchLink.target = "_blank";
+      researchLink.rel = "noopener noreferrer";
+      researchLink.textContent = "検索 →";
+      tdResearch.appendChild(researchLink);
+
+      var tdExpand = document.createElement("td");
+      var expandBtn = document.createElement("button");
+      expandBtn.className = "expand-btn"; expandBtn.type = "button";
+      expandBtn.textContent = (expandedStocks[s.id] ? "▾ 詳細" : "▸ 詳細");
+      expandBtn.addEventListener("click", function () {
+        expandedStocks[s.id] = !expandedStocks[s.id];
+        renderAll();
+      });
+      tdExpand.appendChild(expandBtn);
+
+      var tdRm = document.createElement("td");
+      var rmBtn = document.createElement("button");
+      rmBtn.className = "rm-btn"; rmBtn.type = "button"; rmBtn.textContent = "削除";
+      rmBtn.addEventListener("click", function () {
+        state.stocks = state.stocks.filter(function (x) { return x.id !== s.id; });
+        renderAll();
+        if (NOTION_ENABLED) notionSoftDelete(s.notionId).catch(function (err) {
+          setSyncStatus("銘柄の削除の同期に失敗しました(" + (err && err.code) + ")", true);
+        });
+      });
+      tdRm.appendChild(rmBtn);
+
+      tr.appendChild(tdName); tr.appendChild(tdCodeMarket);
+      tr.appendChild(tdPer); tr.appendChild(tdPbr); tr.appendChild(tdDiv);
+      tr.appendChild(tdSummary); tr.appendChild(tdStatus); tr.appendChild(tdResearch);
+      tr.appendChild(tdExpand); tr.appendChild(tdRm);
+      body.appendChild(tr);
+
+      if (expandedStocks[s.id]) {
+        var detailRow = document.createElement("tr");
+        detailRow.className = "detail-row";
+        var detailCell = document.createElement("td");
+        detailCell.colSpan = 10;
+
+        if (state.criteria.length) {
+          var criteriaBlock = document.createElement("div");
+          criteriaBlock.className = "detail-block";
+          var criteriaLabel = document.createElement("span");
+          criteriaLabel.className = "detail-label";
+          criteriaLabel.textContent = "自由チェック項目";
+          criteriaBlock.appendChild(criteriaLabel);
+          var criteriaListEl = document.createElement("div");
+          criteriaListEl.className = "criteria-list";
+          state.criteria.forEach(function (c) {
+            var row = document.createElement("label");
+            row.className = "criteria-item";
+            var cb = document.createElement("input");
+            cb.type = "checkbox";
+            cb.checked = (s.customChecked || []).indexOf(c.name) !== -1;
+            cb.addEventListener("change", function () {
+              s.customChecked = s.customChecked || [];
+              if (cb.checked) {
+                if (s.customChecked.indexOf(c.name) === -1) s.customChecked.push(c.name);
+              } else {
+                s.customChecked = s.customChecked.filter(function (n) { return n !== c.name; });
+              }
+              renderAll();
+              if (NOTION_ENABLED) notionUpdate(s.notionId, { "カスタムチェック": encodeList(s.customChecked) });
+            });
+            var span = document.createElement("span"); span.textContent = c.name;
+            row.appendChild(cb); row.appendChild(span);
+            criteriaListEl.appendChild(row);
+          });
+          criteriaBlock.appendChild(criteriaListEl);
+          detailCell.appendChild(criteriaBlock);
+        }
+
+        var noteBlock = document.createElement("div");
+        noteBlock.className = "detail-block";
+        var noteLabel = document.createElement("label");
+        noteLabel.className = "detail-label";
+        noteLabel.textContent = "メモ";
+        var noteInput = document.createElement("input");
+        noteInput.type = "text";
+        noteInput.style.width = "100%";
+        noteInput.value = s.note || "";
+        noteInput.addEventListener("change", function () {
+          s.note = noteInput.value;
+          if (NOTION_ENABLED) notionUpdate(s.notionId, { "メモ": s.note });
+        });
+        noteBlock.appendChild(noteLabel);
+        noteBlock.appendChild(noteInput);
+        detailCell.appendChild(noteBlock);
+
+        detailCell.appendChild(buildSellSimBlock(s));
+
+        detailRow.appendChild(detailCell);
+        body.appendChild(detailRow);
+      }
+    });
+  }
+
+  function renderAll() {
+    renderCriteriaMasterList();
+    renderStocks();
+    renderSiteSearchLinks();
+    renderSiteList();
+  }
+
+  // ---------- Init ----------
+  function seedMarketSelect() {
+    var select = document.getElementById("stockMarket");
+    MARKET_OPTIONS.forEach(function (m) {
+      var opt = document.createElement("option"); opt.value = m; opt.textContent = m;
+      select.appendChild(opt);
+    });
+  }
+
+  function init() {
+    seedMarketSelect();
+
+    document.getElementById("saveThresholdsBtn").addEventListener("click", function () {
+      var perRaw = document.getElementById("perThreshold").value;
+      var pbrRaw = document.getElementById("pbrThreshold").value;
+      var divRaw = document.getElementById("divThreshold").value;
+      state.thresholds.per = perRaw === "" ? null : parseFloat(perRaw);
+      state.thresholds.pbr = pbrRaw === "" ? null : parseFloat(pbrRaw);
+      state.thresholds.div = divRaw === "" ? null : parseFloat(divRaw);
+      renderAll();
+      saveThresholds();
+      setSyncStatus(NOTION_ENABLED ? "基準を保存しました" : "基準を更新しました(ローカルのみ)");
+    });
+
+    document.getElementById("addCriteriaBtn").addEventListener("click", function () {
+      var input = document.getElementById("criteriaInput");
+      var name = input.value.trim();
+      if (!name || state.criteria.some(function (c) { return c.name === name; })) return;
+      var c = { id: "temp-" + (nextTempId++), notionId: null, name: name };
+      state.criteria.push(c);
+      input.value = "";
+      renderAll();
+      if (NOTION_ENABLED) {
+        notionCreate(DS.criteria.id, { "項目名": name }).then(function (res) {
+          var created = res.payload && res.payload.pages && res.payload.pages[0];
+          if (created && created.id) { c.id = created.id; c.notionId = created.id; }
+        }).catch(function (err) {
+          setSyncStatus("チェック項目の追加の同期に失敗しました(" + (err && err.code) + ")", true);
+        });
+      }
+    });
+
+    document.getElementById("addSiteBtn").addEventListener("click", function () {
+      var name = document.getElementById("siteName").value.trim();
+      var url = document.getElementById("siteUrl").value.trim();
+      var note = document.getElementById("siteNote").value.trim();
+      if (!name || !url) return;
+      var s = { id: "temp-" + (nextTempId++), notionId: null, name: name, url: url, note: note };
+      state.sites.push(s);
+      document.getElementById("siteName").value = "";
+      document.getElementById("siteUrl").value = "";
+      document.getElementById("siteNote").value = "";
+      renderAll();
+      if (NOTION_ENABLED) {
+        notionCreate(DS.sites.id, { "名称": name, "userDefined:URL": url, "メモ": note }).then(function (res) {
+          var created = res.payload && res.payload.pages && res.payload.pages[0];
+          if (created && created.id) { s.id = created.id; s.notionId = created.id; }
+        }).catch(function (err) {
+          setSyncStatus("お気に入りサイトの追加の同期に失敗しました(" + (err && err.code) + ")", true);
+        });
+      }
+    });
+
+    document.getElementById("addStockBtn").addEventListener("click", function () {
+      var name = document.getElementById("stockName").value.trim();
+      if (!name) return;
+      var s = {
+        id: "temp-" + (nextTempId++), notionId: null,
+        name: name,
+        code: document.getElementById("stockCode").value.trim(),
+        market: document.getElementById("stockMarket").value || MARKET_OPTIONS[0],
+        per: null, pbr: null, div: null,
+        customChecked: [], note: "", manualStatus: MANUAL_STATUS_OPTIONS[0]
+      };
+      state.stocks.push(s);
+      document.getElementById("stockName").value = "";
+      document.getElementById("stockCode").value = "";
+      renderAll();
+      if (NOTION_ENABLED) {
+        notionCreate(DS.stocks.id, stockToProps(s)).then(function (res) {
+          var created = res.payload && res.payload.pages && res.payload.pages[0];
+          if (created && created.id) { s.id = created.id; s.notionId = created.id; }
+        }).catch(function (err) {
+          setSyncStatus("銘柄の追加の同期に失敗しました(" + (err && err.code) + ")", true);
+        });
+      }
+    });
+
+    window.addEventListener("resize", function () { /* no canvas to redraw */ });
+
+    if (NOTION_ENABLED) {
+      setSyncStatus("Notionから読み込んでいます…");
+      Promise.all([loadStocks(), loadCriteria(), loadThresholds(), loadSites()]).then(function (results) {
+        state.stocks = results[0];
+        state.criteria = results[1];
+        state.thresholds = results[2];
+        state.sites = results[3];
+        document.getElementById("perThreshold").value = state.thresholds.per != null ? state.thresholds.per : "";
+        document.getElementById("pbrThreshold").value = state.thresholds.pbr != null ? state.thresholds.pbr : "";
+        document.getElementById("divThreshold").value = state.thresholds.div != null ? state.thresholds.div : "";
+        renderAll();
+        setSyncStatus("Notionと同期中(他の端末からも同じデータが見えます)");
+      }).catch(function (err) {
+        setSyncStatus("Notionからの読み込みに失敗しました(" + (err && err.code) + ")。ページを再読み込みしてください。", true);
+        renderAll();
+      });
+    } else {
+      setSyncStatus("ローカルモードです(このページを閉じるとデータは消えます)");
+      renderAll();
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+})();
+</script>
+</body>
+</html>
