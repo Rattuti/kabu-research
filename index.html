@@ -177,6 +177,8 @@
       <label>銘柄名<input type="text" id="stockName" placeholder="例: ○○ホールディングス"></label>
       <label>コード/ティッカー<input type="text" id="stockCode" placeholder="例: 1234 / AAPL"></label>
       <label>市場<select id="stockMarket"></select></label>
+      <label>保有株数(任意)<input type="number" id="stockShares" placeholder="例: 100"></label>
+      <label>取得単価(任意)<input type="number" id="stockAvgPrice" placeholder="例: 2500"></label>
     </div>
     <button type="button" id="addStockBtn">追加</button>
     <p class="hint" style="margin-top:8px;">追加後、一覧の行から詳細を記録できます。</p>
@@ -316,8 +318,34 @@
 
   function formatNum(n) { return (typeof n === "number" && !isNaN(n)) ? n : null; }
 
-  // ---------- Research links (Google検索。特定サイトのURLを直接組み立てると
-  // URL形式の変化で壊れるリスクがあるため、検索リンク生成にとどめる) ----------
+  // ---------- Research links ----------
+  // 日本株は主要サイトのURL形式が安定しているため直リンクを組み立てる。
+  // 米国株・未上場・コード未入力の場合は検索リンクにフォールバックする。
+  function buildResearchLinks(s) {
+    var links = [];
+    if (s.unlisted) {
+      if (s.name && s.name.indexOf("カブアンド") !== -1) {
+        links.push({ label: "カブアンド公式サイト", url: "https://kabuand.com/" });
+        links.push({ label: "カブアンド公式X(旧Twitter)", url: "https://x.com/kabuand_jp" });
+      }
+      if (s.name) {
+        links.push({ label: s.name + " 公式サイトを検索", url: "https://www.google.com/search?q=" + encodeURIComponent(s.name + " 公式サイト") });
+        links.push({ label: s.name + " 上場スケジュール・ニュースを検索", url: "https://www.google.com/search?q=" + encodeURIComponent(s.name + " 上場 スケジュール ニュース") });
+      }
+    } else if (s.market === "日本株" && s.code) {
+      links.push({ label: "Yahoo!ファイナンス", url: "https://finance.yahoo.co.jp/quote/" + encodeURIComponent(s.code) + ".T" });
+      links.push({ label: "株探(Kabutan)", url: "https://kabutan.jp/stock/?code=" + encodeURIComponent(s.code) });
+      links.push({ label: "IR BANK", url: "https://irbank.net/" + encodeURIComponent(s.code) });
+      links.push({ label: "適時開示・ニュースを検索", url: "https://www.google.com/search?q=" + encodeURIComponent(s.code + " 適時開示 ニュース") });
+    } else if (s.code) {
+      links.push({ label: "PER・PBR・配当利回りを検索", url: buildResearchUrl(s.code, s.market) });
+    }
+    if (s.name) {
+      var libeQuery = "(site:liberaluni.com OR site:youtube.com) リベ大 " + s.name;
+      links.push({ label: "リベ大で言及がないか検索", url: "https://www.google.com/search?q=" + encodeURIComponent(libeQuery) });
+    }
+    return links;
+  }
   function buildResearchUrl(code, market) {
     var q = market === "米国株"
       ? (code + " stock PER PBR dividend yield")
@@ -399,16 +427,26 @@
       div: formatNum(row["配当利回り"]),
       customChecked: customChecked,
       note: row["メモ"] || "",
-      manualStatus: row["手動ステータス"] || MANUAL_STATUS_OPTIONS[0]
+      manualStatus: row["手動ステータス"] || MANUAL_STATUS_OPTIONS[0],
+      shares: formatNum(row["保有株数"]),
+      avgPrice: formatNum(row["取得単価"]),
+      acquiredDate: row["date:取得日:start"] || "",
+      lastReviewedDate: row["date:最終確認日:start"] || "",
+      unlisted: row["未上場"] === "__YES__"
     };
   }
   function stockToProps(s) {
-    return {
+    var props = {
       "銘柄名": s.name, "コード": s.code, "市場": s.market,
       "PER": s.per, "PBR": s.pbr, "配当利回り": s.div,
       "カスタムチェック": encodeList(s.customChecked),
-      "メモ": s.note || "", "手動ステータス": s.manualStatus
+      "メモ": s.note || "", "手動ステータス": s.manualStatus,
+      "保有株数": s.shares, "取得単価": s.avgPrice,
+      "未上場": s.unlisted ? "__YES__" : "__NO__"
     };
+    if (s.acquiredDate) props["date:取得日:start"] = s.acquiredDate;
+    if (s.lastReviewedDate) props["date:最終確認日:start"] = s.lastReviewedDate;
+    return props;
   }
   function loadStocks() {
     return queryAllViewRows(DS.stocks.view).then(function (rows) {
@@ -718,13 +756,11 @@
       tdStatus.appendChild(statusDot);
 
       var tdResearch = document.createElement("td");
-      var researchLink = document.createElement("a");
-      researchLink.className = "research-link";
-      researchLink.href = buildResearchUrl(s.code || s.name, s.market);
-      researchLink.target = "_blank";
-      researchLink.rel = "noopener noreferrer";
-      researchLink.textContent = "検索 →";
-      tdResearch.appendChild(researchLink);
+      var researchHint = document.createElement("span");
+      researchHint.className = "hint";
+      researchHint.style.margin = "0";
+      researchHint.textContent = "詳細へ →";
+      tdResearch.appendChild(researchHint);
 
       var tdExpand = document.createElement("td");
       var expandBtn = document.createElement("button");
@@ -792,6 +828,110 @@
           criteriaBlock.appendChild(criteriaListEl);
           detailCell.appendChild(criteriaBlock);
         }
+
+        // ---------- 保有情報 ----------
+        var holdingBlock = document.createElement("div");
+        holdingBlock.className = "detail-block";
+        var holdingLabel = document.createElement("span");
+        holdingLabel.className = "detail-label";
+        holdingLabel.textContent = "保有情報";
+        holdingBlock.appendChild(holdingLabel);
+
+        var holdingGrid = document.createElement("div");
+        holdingGrid.className = "form-grid";
+        holdingGrid.style.marginTop = "6px";
+
+        function holdingField(labelText, key, placeholder, type) {
+          var label = document.createElement("label");
+          label.textContent = labelText;
+          var input = document.createElement("input");
+          input.type = type || "number";
+          if (placeholder) input.placeholder = placeholder;
+          input.value = s[key] != null ? s[key] : "";
+          input.addEventListener("change", function () {
+            if (type === "date") {
+              s[key] = input.value || "";
+            } else {
+              s[key] = input.value === "" ? null : parseFloat(input.value);
+            }
+            renderAll();
+            var propKey = key === "shares" ? "保有株数" : key === "avgPrice" ? "取得単価" : null;
+            if (NOTION_ENABLED && propKey) notionUpdate(s.notionId, { "保有株数": s.shares, "取得単価": s.avgPrice });
+            if (NOTION_ENABLED && key === "acquiredDate") notionUpdate(s.notionId, { "date:取得日:start": s.acquiredDate || null });
+          });
+          label.appendChild(input);
+          holdingGrid.appendChild(label);
+        }
+        holdingField("保有株数", "shares", "例: 100");
+        holdingField("取得単価(円)", "avgPrice", "例: 2500");
+        holdingField("取得日", "acquiredDate", null, "date");
+        holdingBlock.appendChild(holdingGrid);
+
+        var unlistedLabel = document.createElement("label");
+        unlistedLabel.style.display = "flex"; unlistedLabel.style.alignItems = "center"; unlistedLabel.style.gap = "6px";
+        unlistedLabel.style.marginTop = "6px"; unlistedLabel.style.fontSize = "0.85rem";
+        var unlistedCb = document.createElement("input");
+        unlistedCb.type = "checkbox";
+        unlistedCb.style.width = "auto";
+        unlistedCb.checked = !!s.unlisted;
+        unlistedCb.addEventListener("change", function () {
+          s.unlisted = unlistedCb.checked;
+          renderAll();
+          if (NOTION_ENABLED) notionUpdate(s.notionId, { "未上場": s.unlisted ? "__YES__" : "__NO__" });
+        });
+        unlistedLabel.appendChild(unlistedCb);
+        unlistedLabel.appendChild(document.createTextNode("未上場株(カブアンドなど、証券コードがない場合)"));
+        holdingBlock.appendChild(unlistedLabel);
+
+        var reviewRow = document.createElement("div");
+        reviewRow.style.marginTop = "8px";
+        reviewRow.style.fontSize = "0.85rem";
+        var reviewText = document.createElement("span");
+        reviewText.textContent = "最終確認日: " + (s.lastReviewedDate || "未確認");
+        var elapsedDays = s.lastReviewedDate ? Math.round((new Date(todayStr() + "T00:00:00") - new Date(s.lastReviewedDate + "T00:00:00")) / 86400000) : null;
+        if (elapsedDays !== null && elapsedDays >= 30) {
+          var overdueBadge = document.createElement("span");
+          overdueBadge.className = "summary-chip";
+          overdueBadge.style.background = "var(--partial)";
+          overdueBadge.style.marginLeft = "8px";
+          overdueBadge.textContent = "情報更新推奨(" + elapsedDays + "日経過)";
+          reviewText.appendChild(overdueBadge);
+        }
+        var reviewBtn = document.createElement("button");
+        reviewBtn.type = "button"; reviewBtn.className = "secondary";
+        reviewBtn.style.marginLeft = "10px";
+        reviewBtn.textContent = "確認済みにする";
+        reviewBtn.addEventListener("click", function () {
+          s.lastReviewedDate = todayStr();
+          renderAll();
+          if (NOTION_ENABLED) notionUpdate(s.notionId, { "date:最終確認日:start": s.lastReviewedDate });
+        });
+        reviewRow.appendChild(reviewText);
+        reviewRow.appendChild(reviewBtn);
+        holdingBlock.appendChild(reviewRow);
+        detailCell.appendChild(holdingBlock);
+
+        // ---------- 情報収集リンク ----------
+        var linksBlock = document.createElement("div");
+        linksBlock.className = "detail-block";
+        var linksLabel = document.createElement("span");
+        linksLabel.className = "detail-label";
+        linksLabel.textContent = "情報収集リンク";
+        linksBlock.appendChild(linksLabel);
+        var linksWrap = document.createElement("div");
+        linksWrap.className = "chip-list";
+        linksWrap.style.marginTop = "6px";
+        buildResearchLinks(s).forEach(function (link) {
+          var chip = document.createElement("div");
+          chip.className = "chip link-chip";
+          var a = document.createElement("a");
+          a.href = link.url; a.target = "_blank"; a.rel = "noopener noreferrer";
+          a.textContent = link.label + " →";
+          chip.appendChild(a);
+          linksWrap.appendChild(chip);
+        });
+        linksBlock.appendChild(linksWrap);
+        detailCell.appendChild(linksBlock);
 
         var noteBlock = document.createElement("div");
         noteBlock.className = "detail-block";
@@ -897,11 +1037,16 @@
         code: document.getElementById("stockCode").value.trim(),
         market: document.getElementById("stockMarket").value || MARKET_OPTIONS[0],
         per: null, pbr: null, div: null,
-        customChecked: [], note: "", manualStatus: MANUAL_STATUS_OPTIONS[0]
+        customChecked: [], note: "", manualStatus: MANUAL_STATUS_OPTIONS[0],
+        shares: document.getElementById("stockShares").value ? parseFloat(document.getElementById("stockShares").value) : null,
+        avgPrice: document.getElementById("stockAvgPrice").value ? parseFloat(document.getElementById("stockAvgPrice").value) : null,
+        acquiredDate: "", lastReviewedDate: "", unlisted: false
       };
       state.stocks.push(s);
       document.getElementById("stockName").value = "";
       document.getElementById("stockCode").value = "";
+      document.getElementById("stockShares").value = "";
+      document.getElementById("stockAvgPrice").value = "";
       renderAll();
       if (NOTION_ENABLED) {
         notionCreate(DS.stocks.id, stockToProps(s)).then(function (res) {
