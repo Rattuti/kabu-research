@@ -185,6 +185,14 @@
   </div>
 
   <div class="panel">
+    <h2>貼り付けで半自動入力</h2>
+    <p class="desc">Yahoo!ファイナンスなどの銘柄ページの文章をコピーしてここに貼り付けると、PER・PBR・配当利回りなどを自動で読み取ります(読み取り結果は必ず確認してから反映してください)。</p>
+    <textarea id="pasteArea" placeholder="銘柄ページの文章をここに貼り付け" style="width:100%; min-height:90px; font: inherit; padding:8px; border:1px solid var(--border); border-radius:6px;"></textarea>
+    <button type="button" id="parsePasteBtn" style="margin-top:8px;">読み取る</button>
+    <div id="parseResult" style="margin-top:10px;"></div>
+  </div>
+
+  <div class="panel">
     <h2>銘柄一覧</h2>
     <div class="table-wrap">
       <table>
@@ -321,6 +329,28 @@
   // ---------- Research links ----------
   // 日本株は主要サイトのURL形式が安定しているため直リンクを組み立てる。
   // 米国株・未上場・コード未入力の場合は検索リンクにフォールバックする。
+  // ---------- 貼り付けからの半自動解析 ----------
+  // Yahoo!ファイナンス等の銘柄ページ文章から、PER・PBR・配当利回り・株価・
+  // 証券コード・銘柄名らしき値を抽出するベストエフォートのパーサー。
+  // 精度は完全ではないため、必ず反映前に確認させる。
+  function parsePastedStockText(text) {
+    var result = {};
+    var perM = /PER[^0-9]{0,15}?([0-9]+\.?[0-9]*)\s*倍/.exec(text);
+    if (perM) result.per = parseFloat(perM[1]);
+    var pbrM = /PBR[^0-9]{0,15}?([0-9]+\.?[0-9]*)\s*倍/.exec(text);
+    if (pbrM) result.pbr = parseFloat(pbrM[1]);
+    var divM = /配当利回り[^0-9]{0,15}?([0-9]+\.?[0-9]*)\s*%/.exec(text);
+    if (divM) result.div = parseFloat(divM[1]);
+    var priceM = /(?:株価|現在値)[^0-9]{0,10}?([0-9][0-9,]*\.?[0-9]*)\s*円/.exec(text);
+    if (priceM) result.price = parseFloat(priceM[1].replace(/,/g, ""));
+    var codeM = /\b([0-9]{4})\b/.exec(text);
+    if (codeM) result.code = codeM[1];
+    // 先頭行や「銘柄名(コード)」のようなパターンから銘柄名を推定
+    var nameM = /^([^\n\d(（]{2,20})[\s(（]/m.exec(text.trim());
+    if (nameM) result.name = nameM[1].trim();
+    return result;
+  }
+
   function buildResearchLinks(s) {
     var links = [];
     if (s.unlisted) {
@@ -1026,6 +1056,96 @@
           setSyncStatus("お気に入りサイトの追加の同期に失敗しました(" + (err && err.code) + ")", true);
         });
       }
+    });
+
+    document.getElementById("parsePasteBtn").addEventListener("click", function () {
+      var text = document.getElementById("pasteArea").value;
+      var resultEl = document.getElementById("parseResult");
+      resultEl.innerHTML = "";
+      if (!text.trim()) return;
+      var parsed = parsePastedStockText(text);
+      var found = ["per", "pbr", "div", "price", "code", "name"].some(function (k) { return parsed[k] != null; });
+      if (!found) {
+        var noneEl = document.createElement("p");
+        noneEl.className = "hint";
+        noneEl.textContent = "数値を読み取れませんでした。手入力してください。";
+        resultEl.appendChild(noneEl);
+        return;
+      }
+
+      var summary = document.createElement("div");
+      summary.className = "hint";
+      summary.style.marginBottom = "8px";
+      var parts = [];
+      if (parsed.name) parts.push("銘柄名候補: " + parsed.name);
+      if (parsed.code) parts.push("コード候補: " + parsed.code);
+      if (parsed.per != null) parts.push("PER: " + parsed.per);
+      if (parsed.pbr != null) parts.push("PBR: " + parsed.pbr);
+      if (parsed.div != null) parts.push("配当利回り: " + parsed.div + "%");
+      if (parsed.price != null) parts.push("株価: " + parsed.price + "円");
+      summary.textContent = "読み取り結果(必ず確認してください): " + parts.join(" / ");
+      resultEl.appendChild(summary);
+
+      var applyRow = document.createElement("div");
+      applyRow.className = "row";
+      var targetSelect = document.createElement("select");
+      var newOpt = document.createElement("option");
+      newOpt.value = "__new__";
+      newOpt.textContent = "新規銘柄として追加" + (parsed.name ? "(" + parsed.name + ")" : "");
+      targetSelect.appendChild(newOpt);
+      state.stocks.forEach(function (s) {
+        var opt = document.createElement("option");
+        opt.value = s.id;
+        opt.textContent = s.name + (s.code ? "(" + s.code + ")" : "");
+        targetSelect.appendChild(opt);
+      });
+      applyRow.appendChild(targetSelect);
+
+      var applyBtn = document.createElement("button");
+      applyBtn.type = "button";
+      applyBtn.textContent = "この内容を反映する";
+      applyBtn.addEventListener("click", function () {
+        var targetId = targetSelect.value;
+        var s;
+        if (targetId === "__new__") {
+          s = {
+            id: "temp-" + (nextTempId++), notionId: null,
+            name: parsed.name || "(名称未設定)", code: parsed.code || "",
+            market: MARKET_OPTIONS[0],
+            per: null, pbr: null, div: null,
+            customChecked: [], note: "", manualStatus: MANUAL_STATUS_OPTIONS[0],
+            shares: null, avgPrice: null, acquiredDate: "", lastReviewedDate: "", unlisted: false
+          };
+          state.stocks.push(s);
+        } else {
+          s = state.stocks.filter(function (x) { return x.id === targetId; })[0];
+          if (!s) return;
+        }
+        if (parsed.per != null) s.per = parsed.per;
+        if (parsed.pbr != null) s.pbr = parsed.pbr;
+        if (parsed.div != null) s.div = parsed.div;
+        if (parsed.code && !s.code) s.code = parsed.code;
+        s.lastReviewedDate = todayStr();
+        renderAll();
+        document.getElementById("pasteArea").value = "";
+        resultEl.innerHTML = "";
+        if (NOTION_ENABLED) {
+          if (targetId === "__new__") {
+            notionCreate(DS.stocks.id, stockToProps(s)).then(function (res) {
+              var created = res.payload && res.payload.pages && res.payload.pages[0];
+              if (created && created.id) { s.id = created.id; s.notionId = created.id; }
+            }).catch(function (err) {
+              setSyncStatus("銘柄の追加の同期に失敗しました(" + (err && err.code) + ")", true);
+            });
+          } else {
+            notionUpdate(s.notionId, { "PER": s.per, "PBR": s.pbr, "配当利回り": s.div, "コード": s.code, "date:最終確認日:start": s.lastReviewedDate }).catch(function (err) {
+              setSyncStatus("銘柄の更新の同期に失敗しました(" + (err && err.code) + ")", true);
+            });
+          }
+        }
+      });
+      applyRow.appendChild(applyBtn);
+      resultEl.appendChild(applyRow);
     });
 
     document.getElementById("addStockBtn").addEventListener("click", function () {
