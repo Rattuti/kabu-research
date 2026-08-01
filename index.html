@@ -198,6 +198,27 @@
   </div>
 
   <div class="panel">
+    <h2>ポイント/株引換系サービス</h2>
+    <p class="desc">カブアンドのような、利用額に応じて未上場株の引換券が貯まるタイプのサービス用です。未上場株のためPER等の指標は使えず、年会費(登録料)と保有引換券から概算価値を試算するだけの簡易トラッカーです。株式価値は発行価格を下回るリスクがあり、上場するとは限りません。数値は必ずご自身でサービスの最新情報をご確認のうえ入力してください。</p>
+    <div class="form-grid">
+      <label>サービス名<input type="text" id="psName" placeholder="例: カブアンド"></label>
+      <label>年会費・登録料(円)<input type="number" id="psFee" placeholder="例: 30000"></label>
+      <label>保有株引換券(枚)<input type="number" id="psVouchers" placeholder="例: 500"></label>
+      <label>換算レート(枚/株)<input type="number" id="psRate" placeholder="例: 8"></label>
+      <label>発行価格下限(円)<input type="number" id="psPriceLow" placeholder="例: 8"></label>
+      <label>発行価格上限(円)<input type="number" id="psPriceHigh" placeholder="例: 11"></label>
+    </div>
+    <button type="button" id="addPointStockBtn">追加</button>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>サービス名</th><th>年会費</th><th>引換券</th><th>概算株数</th><th>概算価値</th><th>収支</th><th></th></tr></thead>
+        <tbody id="pointStockBody"></tbody>
+      </table>
+    </div>
+    <div class="empty" id="pointStockEmpty">まだ登録されていません</div>
+  </div>
+
+  <div class="panel">
     <h2>少額投資・情報サイトを探す</h2>
     <p class="desc">サービスは変更・終了することがあるため、常に最新が見つかる検索リンクにしています。</p>
     <div class="chip-list" id="siteSearchLinks"></div>
@@ -227,7 +248,8 @@
     stocks: { id: "5f5e90fe-7a48-4de8-b296-5b1334a81b76", view: "view://69f999de-5e44-4938-9b16-c38490ea3e66" },
     thresholds: { id: "5017c69e-b91c-4134-9612-ae6520638f44", view: "view://0fa7ae7e-9141-4056-a244-9a9fd64ac47e" },
     criteria: { id: "0cb506af-0535-4817-b394-30e26e9dccf0", view: "view://810baee5-57dc-40ca-a8d6-f8dff37b5830" },
-    sites: { id: "6091d042-3463-44e5-9d65-8e4d2465829d", view: "view://9d35f924-4ca2-470d-bc89-3ed20b0a2f72" }
+    sites: { id: "6091d042-3463-44e5-9d65-8e4d2465829d", view: "view://9d35f924-4ca2-470d-bc89-3ed20b0a2f72" },
+    pointStocks: { id: "5d2b71eb-b91e-4f28-b52b-83d57f53af67", view: "view://0118813f-48bb-44e7-b26d-b1c494a8006d" }
   };
 
   // 特定サービスの実際のURLはサービス変更・終了で古くなるリスクがあるため、
@@ -309,6 +331,7 @@
     stocks: [],
     criteria: [],
     sites: [],
+    pointStocks: [],
     thresholds: { notionId: null, per: null, pbr: null, div: null }
   };
   var expandedStocks = {};
@@ -383,6 +406,36 @@
     return queryAllViewRows(DS.sites.view).then(function (rows) {
       return rows.filter(function (r) { return r["削除済み"] !== "__YES__"; }).map(siteRowToItem).filter(function (s) { return s.name; });
     });
+  }
+
+  // ---------- Point/voucher stock services(カブアンド等・未上場株の引換券方式) ----------
+  function pointStockRowToItem(row) {
+    var pageId = extractPageId(row.url);
+    return {
+      id: pageId, notionId: pageId,
+      name: row["サービス名"] || "",
+      fee: formatNum(row["年会費_登録料"]),
+      vouchers: formatNum(row["保有株引換券枚数"]),
+      rate: formatNum(row["換算レート_枚"]) || 8,
+      priceLow: formatNum(row["発行価格下限"]) || 8,
+      priceHigh: formatNum(row["発行価格上限"]) || 11,
+      note: row["メモ"] || ""
+    };
+  }
+  function pointStockToProps(p) {
+    return {
+      "サービス名": p.name, "年会費_登録料": p.fee, "保有株引換券枚数": p.vouchers,
+      "換算レート_枚": p.rate, "発行価格下限": p.priceLow, "発行価格上限": p.priceHigh,
+      "メモ": p.note || ""
+    };
+  }
+  function loadPointStocks() {
+    return queryAllViewRows(DS.pointStocks.view).then(function (rows) {
+      return rows.filter(function (r) { return r["削除済み"] !== "__YES__"; }).map(pointStockRowToItem);
+    });
+  }
+  function pointStockShares(p) {
+    return (p.vouchers || 0) / (p.rate || 8);
   }
 
   // ---------- Stocks ----------
@@ -526,6 +579,66 @@
 
       row.appendChild(main); row.appendChild(rm);
       wrap.appendChild(row);
+    });
+  }
+
+  function renderPointStocks() {
+    var body = document.getElementById("pointStockBody");
+    body.innerHTML = "";
+    document.getElementById("pointStockEmpty").style.display = state.pointStocks.length ? "none" : "block";
+    state.pointStocks.forEach(function (p) {
+      var tr = document.createElement("tr");
+
+      var tdName = document.createElement("td");
+      tdName.className = "name-cell"; tdName.textContent = p.name;
+
+      var tdFee = document.createElement("td");
+      tdFee.setAttribute("data-label", "年会費");
+      tdFee.textContent = p.fee != null ? "¥" + Math.round(p.fee).toLocaleString("ja-JP") : "-";
+
+      var tdVouchers = document.createElement("td");
+      tdVouchers.setAttribute("data-label", "引換券");
+      tdVouchers.textContent = p.vouchers != null ? p.vouchers + "枚" : "-";
+
+      var shares = pointStockShares(p);
+      var tdShares = document.createElement("td");
+      tdShares.setAttribute("data-label", "概算株数");
+      tdShares.textContent = shares ? shares.toFixed(1) + "株" : "-";
+
+      var valueLow = shares * p.priceLow;
+      var valueHigh = shares * p.priceHigh;
+      var tdValue = document.createElement("td");
+      tdValue.setAttribute("data-label", "概算価値");
+      tdValue.textContent = shares ? "¥" + Math.round(valueLow).toLocaleString("ja-JP") + "〜¥" + Math.round(valueHigh).toLocaleString("ja-JP") : "-";
+
+      var tdBalance = document.createElement("td");
+      tdBalance.setAttribute("data-label", "収支");
+      if (shares && p.fee != null) {
+        var balLow = valueLow - p.fee;
+        var balHigh = valueHigh - p.fee;
+        var flag = document.createElement("span");
+        flag.className = "metric-flag " + (balLow >= 0 ? "clear" : (balHigh < 0 ? "miss" : "none"));
+        flag.textContent = (balLow >= 0 ? "+" : "") + Math.round(balLow).toLocaleString("ja-JP") + "〜" + (balHigh >= 0 ? "+" : "") + Math.round(balHigh).toLocaleString("ja-JP");
+        tdBalance.appendChild(flag);
+      } else {
+        tdBalance.textContent = "-";
+      }
+
+      var tdRm = document.createElement("td");
+      var rmBtn = document.createElement("button");
+      rmBtn.className = "rm-btn"; rmBtn.type = "button"; rmBtn.textContent = "削除";
+      rmBtn.addEventListener("click", function () {
+        state.pointStocks = state.pointStocks.filter(function (x) { return x.id !== p.id; });
+        renderAll();
+        if (NOTION_ENABLED) notionSoftDelete(p.notionId).catch(function (err) {
+          setSyncStatus("サービスの削除の同期に失敗しました(" + (err && err.code) + ")", true);
+        });
+      });
+      tdRm.appendChild(rmBtn);
+
+      tr.appendChild(tdName); tr.appendChild(tdFee); tr.appendChild(tdVouchers);
+      tr.appendChild(tdShares); tr.appendChild(tdValue); tr.appendChild(tdBalance); tr.appendChild(tdRm);
+      body.appendChild(tr);
     });
   }
 
@@ -821,6 +934,7 @@
   function renderAll() {
     renderCriteriaMasterList();
     renderStocks();
+    renderPointStocks();
     renderSiteSearchLinks();
     renderSiteList();
   }
@@ -888,6 +1002,35 @@
       }
     });
 
+    document.getElementById("addPointStockBtn").addEventListener("click", function () {
+      var name = document.getElementById("psName").value.trim();
+      if (!name) return;
+      function numOrNull(id) { var v = document.getElementById(id).value; return v === "" ? null : parseFloat(v); }
+      var p = {
+        id: "temp-" + (nextTempId++), notionId: null,
+        name: name,
+        fee: numOrNull("psFee"),
+        vouchers: numOrNull("psVouchers"),
+        rate: numOrNull("psRate") || 8,
+        priceLow: numOrNull("psPriceLow") || 8,
+        priceHigh: numOrNull("psPriceHigh") || 11,
+        note: ""
+      };
+      state.pointStocks.push(p);
+      ["psName", "psFee", "psVouchers", "psRate", "psPriceLow", "psPriceHigh"].forEach(function (id) {
+        document.getElementById(id).value = "";
+      });
+      renderAll();
+      if (NOTION_ENABLED) {
+        notionCreate(DS.pointStocks.id, pointStockToProps(p)).then(function (res) {
+          var created = res.payload && res.payload.pages && res.payload.pages[0];
+          if (created && created.id) { p.id = created.id; p.notionId = created.id; }
+        }).catch(function (err) {
+          setSyncStatus("サービスの追加の同期に失敗しました(" + (err && err.code) + ")", true);
+        });
+      }
+    });
+
     document.getElementById("addStockBtn").addEventListener("click", function () {
       var name = document.getElementById("stockName").value.trim();
       if (!name) return;
@@ -917,11 +1060,12 @@
 
     if (NOTION_ENABLED) {
       setSyncStatus("Notionから読み込んでいます…");
-      Promise.all([loadStocks(), loadCriteria(), loadThresholds(), loadSites()]).then(function (results) {
+      Promise.all([loadStocks(), loadCriteria(), loadThresholds(), loadSites(), loadPointStocks()]).then(function (results) {
         state.stocks = results[0];
         state.criteria = results[1];
         state.thresholds = results[2];
         state.sites = results[3];
+        state.pointStocks = results[4];
         document.getElementById("perThreshold").value = state.thresholds.per != null ? state.thresholds.per : "";
         document.getElementById("pbrThreshold").value = state.thresholds.pbr != null ? state.thresholds.pbr : "";
         document.getElementById("divThreshold").value = state.thresholds.div != null ? state.thresholds.div : "";
