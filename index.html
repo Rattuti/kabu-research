@@ -37,7 +37,6 @@
   .panel h2 { font-size: 1rem; margin: 0 0 4px; }
   .panel .desc { font-size: 0.82rem; color: var(--muted); margin: 0 0 14px; }
   .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  .row.between { justify-content: space-between; }
   select, input[type=text], input[type=number], button {
     font: inherit;
     padding: 6px 10px;
@@ -55,6 +54,18 @@
     border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px;
     margin-top: 10px;
   }
+
+  .lynch-category {
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin-bottom: 8px; background: var(--bg);
+  }
+  .lynch-category:last-child { margin-bottom: 0; }
+  .lynch-category summary { cursor: pointer; font-weight: 600; font-size: 0.92rem; color: var(--accent-dark); }
+  .lynch-category summary:hover { color: var(--accent); }
+  .lynch-category[open] summary { margin-bottom: 4px; }
+  .lynch-list { margin: 8px 0 0; padding-left: 20px; font-size: 0.85rem; line-height: 1.55; }
+  .lynch-list li { margin-bottom: 6px; }
+  .lynch-list .lynch-list { margin-top: 6px; font-size: 0.82rem; color: var(--muted); }
 
   .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 10px; }
   .form-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 0.78rem; color: var(--muted); }
@@ -84,12 +95,12 @@
   .site-row .site-note { color: var(--muted); font-size: 0.78rem; }
 
   .table-wrap { max-height: 460px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; margin-top: 10px; }
-  table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
-  th, td { text-align: left; padding: 7px 9px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.86rem; table-layout: fixed; }
+  th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--border); white-space: normal; overflow-wrap: break-word; }
   th { color: var(--muted); font-weight: 600; position: sticky; top: 0; background: var(--panel); }
-  td.name-cell { white-space: normal; max-width: 180px; font-weight: 500; }
-  .metric-cell { display: flex; align-items: center; gap: 6px; }
-  .metric-cell input[type=number] { width: 68px; }
+  td.name-cell { font-weight: 500; }
+  .metric-cell { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .metric-cell input[type=number] { width: 56px; min-width: 0; }
   .metric-flag { font-size: 0.82rem; flex-shrink: 0; }
   .metric-flag.clear { color: var(--clear); }
   .metric-flag.miss { color: var(--miss); }
@@ -98,7 +109,8 @@
     display: inline-flex; align-items: center; gap: 5px;
     padding: 3px 10px; border-radius: 999px; font-size: 0.78rem; color: #fff; font-weight: 600;
   }
-  .status-select { font-size: 0.8rem; padding: 4px 6px; }
+  .status-select { font-size: 0.8rem; padding: 4px 6px; max-width: 100%; }
+  .status-dot { display: block; width: fit-content; margin-top: 6px; }
   .rm-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.85rem; padding: 2px 6px; }
   .rm-btn:hover { color: var(--miss); }
   .empty { color: var(--muted); text-align: center; padding: 24px 0; font-size: 0.88rem; }
@@ -151,6 +163,188 @@
   </div>
 
   <div class="panel">
+    <h2>投資の心得(ピーター・リンチ)</h2>
+    <p class="desc">ピーター・リンチの考え方を要点整理した参考メモです。項目をクリックすると展開します。「売り」タイミングの部分は、銘柄一覧の銘柄区分に応じたチェックリストとして自動判定にも使われます。それ以外は読み物です。</p>
+
+    <details class="lynch-category">
+      <summary>株価にまつわる、よく聞くバカげた話</summary>
+      <ul class="lynch-list">
+        <li>もうこんなに下がったのだから、これより下がりようがない</li>
+        <li>株価が底値にきたら、それとわかるものだ</li>
+        <li>こんなに株価が上がってしまって、これ以上の上値などあるはずない</li>
+        <li>わずか3ドル。何を失うというのだろう</li>
+        <li>結局、株価は戻る</li>
+        <li>夜明け前はいつも一番暗い</li>
+        <li>10ドルに戻ったら売る</li>
+        <li>何を心配することがあろう。保守的な株はあまり値が動くことはないのに</li>
+        <li>何かが起こるには、もう時間が経ちすぎている</li>
+        <li>得べかりし利益、なぜ買わなかったのだろう</li>
+        <li>これは逃してしまったが、次は捕まえよう</li>
+        <li>株価は上がったのだから正しかったのだ 下がってしまったから間違っていたのだろう</li>
+      </ul>
+    </details>
+
+    <details class="lynch-category">
+      <summary>ポートフォリオを作る</summary>
+      <ul class="lynch-list">
+        <li>金融資産の全容を指す</li>
+        <li>株式投資の収益率を出すうえで忘れてはならないのは、全てのコストを含めるということ</li>
+        <li>「毎年の投資利益が30%維持できる」と期待を持つのはおろか。では、なぜおろかなのか？
+          <ul class="lynch-list">
+            <li>長い目で見ると株式は、その利益の割合は上がり下がり、一定と不規則なので、大きな期待からはずれたら、最悪短期を起こし、一番悪いときに株を投げてしまったり、不必要なリスクをあえてとる可能性があるため</li>
+          </ul>
+        </li>
+        <li>長期の株式投資の技術で効果がないのは、貯金の利回りより劣っている場合</li>
+        <li>自分で銘柄選びをするとしたら、複利で12〜15%。すべての費用、手数料などを差し引き、配当や無償を加えて計算したもの</li>
+        <li>下のような銘柄をたくさん保有することがベスト。自分の得意分野に関する銘柄。あらゆる調査の結果、非常に有望な見通しを発見したとき。1銘柄だけを保有するのは、それほど安全ではない。小さめのポートフォリオでは、3〜10銘柄保有するのがよい
+          <ul class="lynch-list">
+            <li>銘柄数をいくつかにするかでなく、それぞれの会社がいかに良いかを調査することが大事</li>
+          </ul>
+        </li>
+        <li>10〜20%くらいは確実な株に、10〜20%くらいは市状関連株に、残りを業績回復株に投資</li>
+      </ul>
+    </details>
+
+    <details class="lynch-category">
+      <summary>分散投資</summary>
+      <ul class="lynch-list">
+        <li>高成長株4社、業績回復株4社。スリルを緩和させる意味のポートフォリオのなかに、安定株を2社組み入れる</li>
+      </ul>
+    </details>
+
+    <details class="lynch-category">
+      <summary>避ける株の銘柄を6つ挙げるとしたら？</summary>
+      <ul class="lynch-list">
+        <li>何より避けたいのは超人気産業の超人気会社。人気化した株は急騰するが、夢を買っているだけなので落ちるのも急
+          <ul class="lynch-list">
+            <li>人気産業を追いかけて投資すれば、すぐに生活保護のお世話になるだろう</li>
+          </ul>
+        </li>
+        <li>第二の何々にご用心
+          <ul class="lynch-list">
+            <li>第二の何々株と人々が言い出したときは、その株だけでなく、本家のほうもおかしくなり始めるよう</li>
+          </ul>
+        </li>
+        <li>多悪化を避けること。高収益会社はしばしば配当を上げる代わりにバカげた買収を行い、お金の無駄遣いをする
+          <ul class="lynch-list">
+            <li>高すぎる買収価格</li>
+            <li>全く知らない分野の買収</li>
+          </ul>
+        </li>
+        <li>耳打ち株にご用心
+          <ul class="lynch-list">
+            <li>収益などなく、おいしそうなストーリー</li>
+          </ul>
+        </li>
+        <li>下請け会社にはご用心</li>
+        <li>名前の良い会社にはご用心</li>
+      </ul>
+    </details>
+
+    <details class="lynch-category">
+      <summary>ポイント1 投資を始める前に</summary>
+      <ul class="lynch-list">
+        <li>プロの技や知恵を過信するな</li>
+        <li>自分の知っていることを活用しよう</li>
+        <li>ウォール街が気づいていないチャンスを探し、あとでウォール街に実証させる</li>
+        <li>株式投資を始める前に家を買おう</li>
+        <li>会社に投資するのであって株価に投資するのではない</li>
+        <li>短期の株価の変動を無視しよう</li>
+        <li>ありきたりの株で大儲けできる</li>
+        <li>経済を予測しようとしても無駄なこと</li>
+        <li>株式市場の短期の方向性の予測はむなしい</li>
+        <li>株の長期投資収益はかなりの程度まで予測できる。そしてそれは、債券投資の収益に勝る</li>
+        <li>株を保有し続けるのは、終わりのないスタッド・ポーカーのようなもの</li>
+        <li>株式投資は誰にでも合うものではないし、合ったとしても人生のすべてを通じて適切だとは言えない</li>
+        <li>アマチュアは地元の企業に関してはプロに優れる</li>
+        <li>何か得意分野をとっかかりにすると、株は儲けやすい</li>
+        <li>株式市場では、確かな一銘柄は、よくわからない10銘柄にも勝る</li>
+      </ul>
+    </details>
+
+    <details class="lynch-category">
+      <summary>ポイント2 有望株の探し方</summary>
+      <ul class="lynch-list">
+        <li>あなたが株を保有している会社の特質と、その株を特に保有する理由について理解を深める</li>
+        <li>保有する株を分類することで、その株に何が期待できるのかが、よりよく認識できる</li>
+        <li>大きな会社の株価の動きは小さく、小さな会社のそれは大きい</li>
+        <li>ある会社が特定の商品から利益を受けると期待するならば、その会社の規模が重要な要素になる</li>
+        <li>成長率が年率50〜100%もある会社は疑ったほうが良い</li>
+        <li>絶好調の業界の人気株は避けた方がよい</li>
+        <li>多角化は多悪化に終わることが多いので、疑ってかかるほうがよい</li>
+        <li>大当たりを狙った投資が報われることはほとんどない</li>
+        <li>株価の最初の動きに乗り遅れたときは、会社の計画がうまく運ぶかどうかがわかるまで見送ったほうがよい</li>
+        <li>アマチュアでも、専門家でさえも何カ月も何年も手に入れないような信じられないほど貴重な情報を、自分の仕事のなかから得ることができる</li>
+        <li>いかに才能に恵まれ、金持ちで、前回の推奨銘柄が上がったという人からの情報であっても、株に関する助言は、助言者と切り離して客観的に受け止めなければならない</li>
+        <li>株に関する助言、とくにその分野の専門家からの助言のなかには非常に価値のあるものもある。しかし、紙業界の人が薬品株に関する情報を言いふらし、一方、健康産業の人から紙業界における進行中の買収に関する情報が絶え間なく出てくることが多い</li>
+        <li>沈黙していて、ウォール街で人気になったことのないような平凡で目立たない株こそねらい目</li>
+        <li>停滞している産業のなかで、適切なスピードで急成長(20〜25%)している会社は、理想的な投資対象だろう</li>
+        <li>問題があって下がっている株を買う場合は、財務状況の優れた会社にすること。銀行借り入れの多い会社は絶対に避けるべし</li>
+        <li>負債のない会社が倒産することはありえない</li>
+        <li>経営陣の能力も重要だが、それを評価するのは非常に難しい。社長の経歴とか演説の能力ではなく、会社の将来の展望に基づいて株を買う</li>
+        <li>問題を抱えた会社が業績回復に転じたことが多いに稼げるチャンスだ</li>
+        <li>PERを注意深く考えてみる。もし、株価が全体として買われ過ぎのレベルにあるならば、その他の要素がうまくいっていたとしても、金儲けできないだろう</li>
+        <li>会社の進展を観察する方法として、ストーリーの筋書きを見つける</li>
+        <li>自社株の買戻しを継続的に行っている会社を探す</li>
+        <li>何年かに渡って配当記録を研究するとともに、過去の不況期に収入はどうであったかも調べてみる</li>
+        <li>機関投資家の持ち株比率が低いか、あるいはゼロの会社を探す</li>
+        <li>その他の条件が全く同じならば、会社から給料だけを得ている人によって経営されている会社よりも、経営陣が自社株を相当額所有している会社の方を選ぶ</li>
+        <li>インサイダーが買っていることは良い兆候である。とくに、複数の人たちが同時に買っていたらなおよい</li>
+        <li>配当の勘定や、株価の評価は別として、一週間に少なくとも1時間は投資調査に没頭する</li>
+        <li>忍耐強い事。観察は必ず報われる</li>
+        <li>表面上の簿価だけに基づいて株を買うのは危険で、欺かれる。実態価値の方が重要</li>
+        <li>迷っているときは、もう一度、後悔しないように納得のいくまで検討してみる</li>
+        <li>少なくとも新しい冷蔵庫を選ぶのと同じ程度の時間と努力を、新しく投資する株を選ぶ際にも費やさなければならない</li>
+      </ul>
+    </details>
+
+    <details class="lynch-category">
+      <summary>ポイント3 長期的視点</summary>
+      <ul class="lynch-list">
+        <li>新しいアイデアには常に目を開いておくべきだ</li>
+        <li>私も10倍株を結構たくさん逃しているが、市場平均を上回る成果をあげられないということはない</li>
+        <li>市場平均以上の成果をあげられないと思うなら、投資信託を買って、余分な労力やお金は使わないこと</li>
+        <li>花を摘み取ったり、雑草に水をやったりでは、よい結果は得られない</li>
+        <li>好みのカードが出るときは掛け金を増やすし、反対のときは減らす</li>
+        <li>ファンダメンタリズムに基づいてポートフォリオを注意深く刈り取ったり循環させたりすることが、投資結果の改善につながる。その株が現実には路線を外れていて他によいものがあるときは売って、それらに乗り換える</li>
+        <li>株価がゼロになったとき、買った時点の株価が50ドル、25ドル、5ドル、2ドルのいずれであろうと、投資金額分だけ失うのに変わりはない</li>
+        <li>ストーリーをチェックするのをやめ、自己満足するような勝者にはならないでもらいたい</li>
+        <li>株は、あなたがそれを持っていることは知らない</li>
+        <li>たとえ上がった株を持たなかったからと言って、何も失ったことにはならない</li>
+        <li>企業は理由がなくて成長するものではないし、高成長会社だからといって永遠にその位置にあるわけでもない</li>
+        <li>株価が少し高くなりすぎたからという理由で成長性の抜きんでた会社の株を売ることは、お金を失うもとである</li>
+        <li>株価が安いと言うだけで平凡な三流の会社の株を買うことはお金を失うもとである</li>
+        <li>金融機関が大量に保有し、ウォール街で人気化して相場をリードしてきた仕手株は、高くなり過ぎで、後は沈滞か下落しかない</li>
+        <li>買った株が下がったというだけで、あなたが間違っていたということにもならない</li>
+        <li>勝った株が上がったというだけで、あなたが正しいということにはならない</li>
+        <li>冴えない会社だからといって、さらに悪くはならない</li>
+        <li>株価は、しばしばファンダメンタルズとは逆の方向に動くが、長期では株価の方向と収益の持続性は同じ流れである</li>
+        <li>20〜30%上がる安定株を複数持てば、かなり儲かる</li>
+        <li>カテゴリーの違う株は、報われ方も異なる</li>
+        <li>大きく儲けるのは驚きだし、買収にはさらにびっくりさせられる。大きな結果を得るには1年はかかる。数カ月ではない</li>
+        <li>人より抜きんでるためには「いつも」正しくなければならないという必要はない。「ほとんどの場合」正しいという必要さえない</li>
+        <li>1年あるいは2年先の相場の方向を予測するなど、不可能である</li>
+        <li>暴落は、目を付けていた会社の株を買う絶好の機会である。調整(暴落のウォール街流呼び名)は、素晴らしい会社の株をバーゲン価格まで下げてくれる</li>
+        <li>来月、来年、3年後のいつか、相場は急落する</li>
+      </ul>
+    </details>
+
+    <details class="lynch-category">
+      <summary>株の「売り」タイミング 6つ挙げるとすると？</summary>
+      <p class="hint" style="margin:8px 0 0;">この内容は下の銘柄一覧で「銘柄区分」を設定すると、銘柄ごとのチェックリストとして使え、判定にも反映されます。</p>
+      <div id="lynchSellTimingList"></div>
+    </details>
+
+    <details class="lynch-category">
+      <summary>株の「買い」タイミング</summary>
+      <ul class="lynch-list">
+        <li>年末の恒例、税金対策のための売りが出る時期。10月から12月にきつい下げ</li>
+        <li>数年に一度、株式市場に起こる、暴落や反落。素晴らしい成長を遂げている堅実な会社の株を安く買える機会</li>
+      </ul>
+    </details>
+  </div>
+
+  <div class="panel">
     <h2>数値基準の設定</h2>
     <p class="desc">PER・PBR・配当利回りの目安値を自分で設定します(適正水準は業種により異なります)。</p>
     <div class="form-grid">
@@ -177,15 +371,21 @@
       <label>銘柄名<input type="text" id="stockName" placeholder="例: ○○ホールディングス"></label>
       <label>コード/ティッカー<input type="text" id="stockCode" placeholder="例: 1234 / AAPL"></label>
       <label>市場<select id="stockMarket"></select></label>
+      <label>銘柄区分(任意)<select id="stockCategory"></select></label>
     </div>
     <button type="button" id="addStockBtn">追加</button>
-    <p class="hint" style="margin-top:8px;">追加後、一覧の行から詳細を記録できます。</p>
+    <p class="hint" style="margin-top:8px;">追加後、一覧の行から詳細を記録できます。銘柄区分は後からでも設定・変更できます。</p>
   </div>
 
   <div class="panel">
     <h2>銘柄一覧</h2>
     <div class="table-wrap">
       <table>
+        <colgroup>
+          <col style="width:16%"><col style="width:9%"><col style="width:9%"><col style="width:9%">
+          <col style="width:10%"><col style="width:12%"><col style="width:14%"><col style="width:6%">
+          <col style="width:9%"><col style="width:6%">
+        </colgroup>
         <thead>
           <tr>
             <th>銘柄名</th><th>コード/市場</th><th>PER</th><th>PBR</th><th>配当利回り%</th><th>判定</th><th>手動ステータス</th><th>調査</th><th></th><th></th>
@@ -199,7 +399,7 @@
 
   <div class="panel">
     <h2>ポイント/株引換系サービス</h2>
-    <p class="desc">カブアンドのような、利用額に応じて未上場株の引換券が貯まるタイプのサービス用です。未上場株のためPER等の指標は使えず、年会費(登録料)と保有引換券から概算価値を試算するだけの簡易トラッカーです。株式価値は発行価格を下回るリスクがあり、上場するとは限りません。数値は必ずご自身でサービスの最新情報をご確認のうえ入力してください。</p>
+    <p class="desc">カブアンドのような、利用額に応じて未上場株の引換券が貯まるサービス用の簡易トラッカーです(年会費と引換券から概算価値を試算)。株式価値は発行価格を下回るリスクがあり、上場するとは限りません。最新情報はご自身でご確認ください。</p>
     <div class="form-grid">
       <label>サービス名<input type="text" id="psName" placeholder="例: カブアンド"></label>
       <label>年会費・登録料(円)<input type="number" id="psFee" placeholder="例: 30000"></label>
@@ -211,6 +411,10 @@
     <button type="button" id="addPointStockBtn">追加</button>
     <div class="table-wrap">
       <table>
+        <colgroup>
+          <col style="width:18%"><col style="width:14%"><col style="width:12%"><col style="width:13%">
+          <col style="width:20%"><col style="width:17%"><col style="width:6%">
+        </colgroup>
         <thead><tr><th>サービス名</th><th>年会費</th><th>引換券</th><th>概算株数</th><th>概算価値</th><th>収支</th><th></th></tr></thead>
         <tbody id="pointStockBody"></tbody>
       </table>
@@ -242,6 +446,108 @@
   "use strict";
 
   // ---------- Notion sync ----------
+  // ---------- Notion bridge shim ----------
+  // window.claude.mcp が存在しない環境(Artifactではなくローカルファイル等として
+  // 開かれた場合)でのみ、Cloudflare Worker(notion-bridge)経由でNotion側の
+  // データを読み書きする互換シムを定義する。window.claude.mcp.callTool(server,
+  // tool, input) と同じ形を再現し、アプリ本体のコードからは区別なく呼べるようにする。
+  if (!(window.claude && window.claude.mcp)) {
+    (function () {
+      var BRIDGE_BASE = "https://notion-bridge.rattuti.workers.dev";
+      var APP_KEY_STORAGE = "notion_bridge_key";
+      // ビューURL→DB IDの対応は、下で定義するDS(データソース定義)から都度引く。
+      // callToolは非同期に呼ばれるため、この時点でDSがまだ未代入でも問題ない。
+      function dataSourceIdForView(viewUrl) {
+        var keys = Object.keys(DS);
+        for (var i = 0; i < keys.length; i++) {
+          if (DS[keys[i]].view === viewUrl) return DS[keys[i]].id;
+        }
+        return null;
+      }
+
+      // notion-query-database-view/notion-create-pagesで取得・作成した各ページIDが
+      // どのデータソース(DB)に属するかを控えておく。notion-update-pageはpage_idしか
+      // 受け取らないため、更新時にこの対応表からdataSourceIdを引く。
+      // Workerが返すIDはハイフン付きだが、アプリ側はextractPageId()でハイフンなしの
+      // 32桁hexに変換した値をnotionIdとして保持するため、キーは常にハイフンを
+      // 除去して正規化してから読み書きする。
+      var pageDataSourceMap = {};
+      function normalizeId(id) {
+        return (id || "").replace(/-/g, "");
+      }
+
+      function getAppKey() {
+        var key = localStorage.getItem(APP_KEY_STORAGE);
+        if (!key) {
+          key = window.prompt("Notion連携用のアプリキーを入力してください");
+          if (key) localStorage.setItem(APP_KEY_STORAGE, key);
+        }
+        return key;
+      }
+
+      function bridgeFetch(path, body) {
+        var key = getAppKey();
+        return fetch(BRIDGE_BASE + path, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-App-Key": key || "" },
+          body: JSON.stringify(body)
+        }).then(function (res) {
+          if (res.status === 401) {
+            localStorage.removeItem(APP_KEY_STORAGE);
+            return Promise.reject({ code: "unauthorized", message: "アプリキーが正しくありません" });
+          }
+          if (!res.ok) {
+            return Promise.reject({ code: "http_" + res.status, message: "Notion連携サーバーへの通信に失敗しました" });
+          }
+          return res.json();
+        });
+      }
+
+      // bridgeFetchはWorkerの生レスポンス({results,...}や{pages:[...]}等)を
+      // そのまま返す。window.claude.mcp.callToolの実際の戻り値は{payload: ...}
+      // で包まれた形のため、ここで同じ形に包み直してからアプリ本体に返す。
+      function callTool(server, tool, input) {
+        if (tool === "notion-query-database-view") {
+          var queryDataSourceId = dataSourceIdForView(input.view_url);
+          var queryBody = { dataSourceId: queryDataSourceId, page_size: input.page_size };
+          if (input.start_cursor) queryBody.start_cursor = input.start_cursor;
+          return bridgeFetch("/query", queryBody).then(function (raw) {
+            var results = raw.results || [];
+            results.forEach(function (row) {
+              if (row && row.id) pageDataSourceMap[normalizeId(row.id)] = queryDataSourceId;
+            });
+            return { payload: raw };
+          });
+        }
+        if (tool === "notion-create-pages") {
+          var createDataSourceId = input.parent && input.parent.data_source_id;
+          var page = input.pages && input.pages[0];
+          return bridgeFetch("/create", {
+            dataSourceId: createDataSourceId,
+            properties: page && page.properties
+          }).then(function (raw) {
+            var created = raw.pages && raw.pages[0];
+            if (created && created.id) pageDataSourceMap[normalizeId(created.id)] = createDataSourceId;
+            return { payload: raw };
+          });
+        }
+        if (tool === "notion-update-page") {
+          return bridgeFetch("/update", {
+            pageId: input.page_id,
+            dataSourceId: pageDataSourceMap[normalizeId(input.page_id)],
+            properties: input.properties
+          }).then(function (raw) {
+            return { payload: raw };
+          });
+        }
+        return Promise.reject({ code: "unsupported_tool", message: "未対応のツールです: " + tool });
+      }
+
+      window.claude = window.claude || {};
+      window.claude.mcp = { callTool: callTool };
+    })();
+  }
+
   var NOTION_ENABLED = !!(window.claude && window.claude.mcp);
   var NOTION_SERVER = "Notion";
   var DS = {
@@ -266,6 +572,78 @@
   var MARKET_OPTIONS = ["日本株", "米国株"];
   var MANUAL_STATUS_OPTIONS = ["未定", "興味あり", "見送り"];
   var STATUS_COLOR = { "未定": "#9ca3af", "興味あり": "var(--clear)", "見送り": "var(--miss)" };
+  var POINT_STOCK_DEFAULT_RATE = 8;
+  var POINT_STOCK_DEFAULT_PRICE_LOW = 8;
+  var POINT_STOCK_DEFAULT_PRICE_HIGH = 11;
+  var STOCK_TABLE_COLSPAN = 10;
+  var CATEGORY_OPTIONS = ["", "低成長株", "優良株", "市状関連株", "急成長株", "業績回復株", "資産株"];
+
+  // ピーター・リンチの「株の売りタイミング」を銘柄区分別に整理したもの。
+  // 「投資の心得」パネルの読み物表示と、銘柄ごとの売りシグナルチェックリストの両方で
+  // このデータを共有し、内容を二重管理しない。
+  var SELL_SIGNALS = {
+    "低成長株": {
+      intro: "そもそもあまり持たないが、売る目安を7つ挙げるとしたら？",
+      items: [
+        "株価が30〜50%値上がりする",
+        "株価が下がってもファンダメンタルズが悪化すれば売る",
+        "二年連続でマーケットシェアを落とし、新たに1つ広告会社を雇い入れた",
+        "新商品の開発がなく、研究開発費を切り詰め、過去の栄光にしがみついている",
+        "最近業種の違う会社を2社ほど買収したものの、ますます業績を悪化させている。そして、技術力のある会社の買収に意欲を見せている",
+        "買収のため、無借金で何百万ドルもの現金を保有していたのに、逆に何百万ドルもの借金にて、財務状況を悪化させてしまった会社。株価が急落しても、自社株を買い戻す余剰金さえない",
+        "低株価にも関わらず、投資家を惹きつけるだけの配当利回りさえない"
+      ]
+    },
+    "優良株": {
+      intro: "株から株へと乗り換える。安定株には、急速に10倍の値上がりを期待できる要因がない。もし、株価が利益ラインを越えたり、PERが通常の範囲をはるかに上回るときに売って、また株価が下がったときに買い戻すか、他の安定株を買うのがよい。では、その株を売るタイミング5つ挙げるとすると？",
+      items: [
+        "直近二年間の商品の良し悪しがまちまちで、そして試作段階の新商品が市場に出るまでに1年以上も間がある",
+        "同業他社のPERが11〜12倍あるのに、その株のPERが15倍になった",
+        "前年、役員が自社株を購入していない",
+        "利益の25%の主力部門がマクロの経済指標によって影響を受ける会社(受託着工件数、石油採掘量など)",
+        "成長率が鈍化しているが合理化によって利益を維持している。しかし、将来の合理化効果にはもうそれほど期待できない会社"
+      ]
+    },
+    "市状関連株": {
+      intro: "景気循環の終了時に売却するのが最良のタイミングであるが、誰もわからない。では、その売るタイミングを6つ挙げるとすると？",
+      items: [
+        "在庫の増加には注意を払う。駐車場が在庫の鉄くずでいっぱいになったときは、明らかに市状関連株を売る時期",
+        "競争の激化も、市状関連株にとっては悪いサイン",
+        "今後12カ月の間に労組と協約の重要な2項目が期限切れになるが、労組のリーダーは前回の協約時に譲歩していた賃金と福利厚生費の全面的復旧を要求している",
+        "製品の最終需要が減退している",
+        "旧工場を低コストで近代化することをせずに、設備投資予算を倍増して、立派な新工場を建てようとしている",
+        "コスト削減の努力はしているものの、まだ外国製品との価格競争に太刀打ちできない"
+      ]
+    },
+    "急成長株": {
+      intro: "10倍株の候補を失わないようにすること。急成長の第二段階の終了を見極めること。避けるべき株の全ての特徴は、売りたい株の特徴と同じである。また、この株を売るタイミングを5つ挙げるとすると？",
+      items: [
+        "最近の4半期業績で店の売上が3%落ちた",
+        "新店舗の売り上げが、はかばかしくなかった",
+        "役員が2人、何人かの優秀な社員とともにライバル企業に移った",
+        "2週間に12都市で説明会を開き、機関投資家相手に非常に強気な説明をしてきた",
+        "今後2年間、最も楽観的な予想でもPERが15〜20倍のところ、30倍まで買われている"
+      ]
+    },
+    "業績回復株": {
+      intro: "業績が転換点を超えた時点で売るのが一番。また、その売るタイミング4つ挙げるとすると？",
+      items: [
+        "借入金が過去5回の4半期の間、連続して減少していたのに、直近の4半期レポートを見ると2500万ドルも増えている",
+        "在庫の増加率が在庫の伸び率の2倍にも達した",
+        "収益予測に対してPERが高すぎる",
+        "主要部門の生産高の50%が、ある特定の顧客向けで、その顧客自身が売り上げ減少に悩まされている"
+      ]
+    },
+    "資産株": {
+      intro: "「乗っ取り(M&A)を待つ」ことに尽きる。また、その売るタイミング4つ挙げるとすると？",
+      items: [
+        "株価が実態より低いが、多角化プログラムのための資金調達の目的で10%の増資を行うと発表した",
+        "2000万ドルで売却されると期待した部門が、実際には1200万ドルでしか売れなかった",
+        "法人税率の低減のため、繰越税額控除の価値が減った",
+        "機関投資家の持ち株比率が、5年前の25%から60%にまで上がった"
+      ]
+    }
+  };
 
   function extractPageId(url) {
     var m = /([0-9a-f]{32})(?:\?.*)?$/i.exec(url || "");
@@ -337,7 +715,54 @@
   var expandedStocks = {};
   var nextTempId = 1;
 
-  function formatNum(n) { return (typeof n === "number" && !isNaN(n)) ? n : null; }
+  function numericOrNull(n) { return (typeof n === "number" && !isNaN(n)) ? n : null; }
+
+  function syncErrorMessage(prefix, err) {
+    return prefix + "の同期に失敗しました(" + (err && err.code) + ")";
+  }
+
+  function numOrNull(inputId) {
+    var v = document.getElementById(inputId).value;
+    return v === "" ? null : parseFloat(v);
+  }
+
+  function clearInputs(inputIds) {
+    inputIds.forEach(function (id) { document.getElementById(id).value = ""; });
+  }
+
+  function toggleEmpty(emptyElId, hasItems) {
+    document.getElementById(emptyElId).style.display = hasItems ? "none" : "block";
+  }
+
+  // 追加フォームからの新規アイテム用に一時IDを割り当てる(Notion同期後にnotionIdへ差し替わる)
+  function makeTempItem(base) {
+    base.id = "temp-" + (nextTempId++);
+    base.notionId = null;
+    return base;
+  }
+
+  // 一覧からの削除の共通処理: ローカル状態から取り除いて再描画し、Notion側は論理削除する
+  function removeItem(listKey, item, label) {
+    state[listKey] = state[listKey].filter(function (x) { return x.id !== item.id; });
+    renderAll();
+    if (!NOTION_ENABLED) return;
+    notionSoftDelete(item.notionId).catch(function (err) {
+      setSyncStatus(syncErrorMessage(label + "の削除", err), true);
+    });
+  }
+
+  // 追加フォームからの新規作成の共通処理: ローカル状態に積んで再描画し、Notion側に作成する
+  function addAndSync(listKey, item, dsId, props, label) {
+    state[listKey].push(item);
+    renderAll();
+    if (!NOTION_ENABLED) return;
+    notionCreate(dsId, props).then(function (res) {
+      var created = res.payload && res.payload.pages && res.payload.pages[0];
+      if (created && created.id) { item.id = created.id; item.notionId = created.id; }
+    }).catch(function (err) {
+      setSyncStatus(syncErrorMessage(label + "の追加", err), true);
+    });
+  }
 
   // ---------- Research links (Google検索。特定サイトのURLを直接組み立てると
   // URL形式の変化で壊れるリスクがあるため、検索リンク生成にとどめる) ----------
@@ -369,16 +794,27 @@
     var props = { "設定名": "基準", "PER基準": t.per, "PBR基準": t.pbr, "配当利回り基準": t.div };
     if (t.notionId) {
       notionUpdate(t.notionId, props).catch(function (err) {
-        setSyncStatus("基準の同期に失敗しました(" + (err && err.code) + ")", true);
+        setSyncStatus(syncErrorMessage("基準", err), true);
       });
     } else {
       notionCreate(DS.thresholds.id, props).then(function (res) {
         var created = res.payload && res.payload.pages && res.payload.pages[0];
         if (created && created.id) t.notionId = created.id;
       }).catch(function (err) {
-        setSyncStatus("基準の同期に失敗しました(" + (err && err.code) + ")", true);
+        setSyncStatus(syncErrorMessage("基準", err), true);
       });
     }
+  }
+
+  // ---------- Shared Notion view loading ----------
+  // 各セクション共通: ビューの全行を取得し、削除済み行を除外してから
+  // セクション固有のrowToItemでマッピングする。extraFilterはマッピング後の
+  // 追加絞り込み(例: 名前が空のものを除く)に使う。
+  function loadNotionList(view, rowToItem, extraFilter) {
+    return queryAllViewRows(view).then(function (rows) {
+      var items = rows.filter(function (r) { return r["削除済み"] !== "__YES__"; }).map(rowToItem);
+      return extraFilter ? items.filter(extraFilter) : items;
+    });
   }
 
   // ---------- Custom criteria ----------
@@ -387,9 +823,7 @@
     return { id: pageId, notionId: pageId, name: row["項目名"] || "" };
   }
   function loadCriteria() {
-    return queryAllViewRows(DS.criteria.view).then(function (rows) {
-      return rows.filter(function (r) { return r["削除済み"] !== "__YES__"; }).map(criteriaRowToItem).filter(function (c) { return c.name; });
-    });
+    return loadNotionList(DS.criteria.view, criteriaRowToItem, function (c) { return c.name; });
   }
 
   // ---------- Favorite sites (ユーザーが自分で見つけたURLを登録) ----------
@@ -403,9 +837,7 @@
     };
   }
   function loadSites() {
-    return queryAllViewRows(DS.sites.view).then(function (rows) {
-      return rows.filter(function (r) { return r["削除済み"] !== "__YES__"; }).map(siteRowToItem).filter(function (s) { return s.name; });
-    });
+    return loadNotionList(DS.sites.view, siteRowToItem, function (s) { return s.name; });
   }
 
   // ---------- Point/voucher stock services(カブアンド等・未上場株の引換券方式) ----------
@@ -414,11 +846,11 @@
     return {
       id: pageId, notionId: pageId,
       name: row["サービス名"] || "",
-      fee: formatNum(row["年会費_登録料"]),
-      vouchers: formatNum(row["保有株引換券枚数"]),
-      rate: formatNum(row["換算レート_枚"]) || 8,
-      priceLow: formatNum(row["発行価格下限"]) || 8,
-      priceHigh: formatNum(row["発行価格上限"]) || 11,
+      fee: numericOrNull(row["年会費_登録料"]),
+      vouchers: numericOrNull(row["保有株引換券枚数"]),
+      rate: numericOrNull(row["換算レート_枚"]) || POINT_STOCK_DEFAULT_RATE,
+      priceLow: numericOrNull(row["発行価格下限"]) || POINT_STOCK_DEFAULT_PRICE_LOW,
+      priceHigh: numericOrNull(row["発行価格上限"]) || POINT_STOCK_DEFAULT_PRICE_HIGH,
       note: row["メモ"] || ""
     };
   }
@@ -430,29 +862,32 @@
     };
   }
   function loadPointStocks() {
-    return queryAllViewRows(DS.pointStocks.view).then(function (rows) {
-      return rows.filter(function (r) { return r["削除済み"] !== "__YES__"; }).map(pointStockRowToItem);
-    });
+    return loadNotionList(DS.pointStocks.view, pointStockRowToItem);
   }
   function pointStockShares(p) {
-    return (p.vouchers || 0) / (p.rate || 8);
+    return (p.vouchers || 0) / (p.rate || POINT_STOCK_DEFAULT_RATE);
   }
 
   // ---------- Stocks ----------
   function stockRowToItem(row) {
     var pageId = extractPageId(row.url);
     var customChecked = decodeList(row["カスタムチェック"]);
+    var category = row["銘柄区分"] || "";
+    var sellSignals = decodeList(row["売りシグナル"]);
+    if (!SELL_SIGNALS[category]) sellSignals = [];
     return {
       id: pageId, notionId: pageId,
       name: row["銘柄名"] || "",
       code: row["コード"] || "",
       market: row["市場"] || MARKET_OPTIONS[0],
-      per: formatNum(row["PER"]),
-      pbr: formatNum(row["PBR"]),
-      div: formatNum(row["配当利回り"]),
+      per: numericOrNull(row["PER"]),
+      pbr: numericOrNull(row["PBR"]),
+      div: numericOrNull(row["配当利回り"]),
       customChecked: customChecked,
       note: row["メモ"] || "",
-      manualStatus: row["手動ステータス"] || MANUAL_STATUS_OPTIONS[0]
+      manualStatus: row["手動ステータス"] || MANUAL_STATUS_OPTIONS[0],
+      category: category,
+      sellSignals: sellSignals
     };
   }
   function stockToProps(s) {
@@ -460,13 +895,19 @@
       "銘柄名": s.name, "コード": s.code, "市場": s.market,
       "PER": s.per, "PBR": s.pbr, "配当利回り": s.div,
       "カスタムチェック": encodeList(s.customChecked),
-      "メモ": s.note || "", "手動ステータス": s.manualStatus
+      "メモ": s.note || "", "手動ステータス": s.manualStatus,
+      "銘柄区分": s.category || "", "売りシグナル": encodeList(s.sellSignals)
     };
   }
   function loadStocks() {
-    return queryAllViewRows(DS.stocks.view).then(function (rows) {
-      return rows.filter(function (r) { return r["削除済み"] !== "__YES__"; }).map(stockRowToItem);
-    });
+    return loadNotionList(DS.stocks.view, stockRowToItem);
+  }
+
+  function formatYen(n) {
+    return "¥" + Math.round(n).toLocaleString("ja-JP");
+  }
+  function formatSigned(n) {
+    return (n >= 0 ? "+" : "") + Math.round(n).toLocaleString("ja-JP");
   }
 
   function metricFlag(value, threshold, direction) {
@@ -485,6 +926,17 @@
     var known = flags.filter(function (f) { return f !== "none"; });
     var clearCount = flags.filter(function (f) { return f === "clear"; }).length;
     return { clearCount: clearCount, knownCount: known.length, total: 3 };
+  }
+
+  // 売りシグナルは「危険サイン」なので、多くチェックが付くほど売り時に近いという
+  // 数値判定(多くクリアするほど良い)とは逆向きの評価になる。
+  function sellSignalSummary(s) {
+    var def = SELL_SIGNALS[s.category];
+    if (!def) return null;
+    var checked = (s.sellSignals || []).filter(function (name) {
+      return def.items.indexOf(name) !== -1;
+    });
+    return { triggered: checked.length, total: def.items.length };
   }
 
   function renderCriteriaMasterList() {
@@ -507,14 +959,10 @@
       var rm = document.createElement("button");
       rm.type = "button"; rm.className = "rm"; rm.textContent = "✕";
       rm.addEventListener("click", function () {
-        state.criteria = state.criteria.filter(function (x) { return x.id !== c.id; });
         state.stocks.forEach(function (s) {
           s.customChecked = (s.customChecked || []).filter(function (n) { return n !== c.name; });
         });
-        renderAll();
-        if (NOTION_ENABLED) notionSoftDelete(c.notionId).catch(function (err) {
-          setSyncStatus("チェック項目の削除の同期に失敗しました(" + (err && err.code) + ")", true);
-        });
+        removeItem("criteria", c, "チェック項目");
       });
       chip.appendChild(label); chip.appendChild(rm);
       wrap.appendChild(chip);
@@ -570,11 +1018,7 @@
       var rm = document.createElement("button");
       rm.type = "button"; rm.className = "rm-btn"; rm.textContent = "削除";
       rm.addEventListener("click", function () {
-        state.sites = state.sites.filter(function (x) { return x.id !== s.id; });
-        renderAll();
-        if (NOTION_ENABLED) notionSoftDelete(s.notionId).catch(function (err) {
-          setSyncStatus("お気に入りサイトの削除の同期に失敗しました(" + (err && err.code) + ")", true);
-        });
+        removeItem("sites", s, "お気に入りサイト");
       });
 
       row.appendChild(main); row.appendChild(rm);
@@ -585,7 +1029,7 @@
   function renderPointStocks() {
     var body = document.getElementById("pointStockBody");
     body.innerHTML = "";
-    document.getElementById("pointStockEmpty").style.display = state.pointStocks.length ? "none" : "block";
+    toggleEmpty("pointStockEmpty", state.pointStocks.length > 0);
     state.pointStocks.forEach(function (p) {
       var tr = document.createElement("tr");
 
@@ -594,7 +1038,7 @@
 
       var tdFee = document.createElement("td");
       tdFee.setAttribute("data-label", "年会費");
-      tdFee.textContent = p.fee != null ? "¥" + Math.round(p.fee).toLocaleString("ja-JP") : "-";
+      tdFee.textContent = p.fee != null ? formatYen(p.fee) : "-";
 
       var tdVouchers = document.createElement("td");
       tdVouchers.setAttribute("data-label", "引換券");
@@ -609,7 +1053,7 @@
       var valueHigh = shares * p.priceHigh;
       var tdValue = document.createElement("td");
       tdValue.setAttribute("data-label", "概算価値");
-      tdValue.textContent = shares ? "¥" + Math.round(valueLow).toLocaleString("ja-JP") + "〜¥" + Math.round(valueHigh).toLocaleString("ja-JP") : "-";
+      tdValue.textContent = shares ? formatYen(valueLow) + "〜" + formatYen(valueHigh) : "-";
 
       var tdBalance = document.createElement("td");
       tdBalance.setAttribute("data-label", "収支");
@@ -618,7 +1062,7 @@
         var balHigh = valueHigh - p.fee;
         var flag = document.createElement("span");
         flag.className = "metric-flag " + (balLow >= 0 ? "clear" : (balHigh < 0 ? "miss" : "none"));
-        flag.textContent = (balLow >= 0 ? "+" : "") + Math.round(balLow).toLocaleString("ja-JP") + "〜" + (balHigh >= 0 ? "+" : "") + Math.round(balHigh).toLocaleString("ja-JP");
+        flag.textContent = formatSigned(balLow) + "〜" + formatSigned(balHigh);
         tdBalance.appendChild(flag);
       } else {
         tdBalance.textContent = "-";
@@ -628,11 +1072,7 @@
       var rmBtn = document.createElement("button");
       rmBtn.className = "rm-btn"; rmBtn.type = "button"; rmBtn.textContent = "削除";
       rmBtn.addEventListener("click", function () {
-        state.pointStocks = state.pointStocks.filter(function (x) { return x.id !== p.id; });
-        renderAll();
-        if (NOTION_ENABLED) notionSoftDelete(p.notionId).catch(function (err) {
-          setSyncStatus("サービスの削除の同期に失敗しました(" + (err && err.code) + ")", true);
-        });
+        removeItem("pointStocks", p, "サービス");
       });
       tdRm.appendChild(rmBtn);
 
@@ -714,13 +1154,13 @@
       row.appendChild(l); row.appendChild(v);
       resultWrap.appendChild(row);
     }
-    resultRow("売却金額", "¥" + Math.round(gross).toLocaleString("ja-JP"));
-    resultRow("手数料(概算)", "¥" + Math.round(fee).toLocaleString("ja-JP"));
+    resultRow("売却金額", formatYen(gross));
+    resultRow("手数料(概算)", formatYen(fee));
     var netRow = document.createElement("div");
     netRow.className = "breakdown-row bd-total";
     var netLabel = document.createElement("span"); netLabel.textContent = "手取り額(概算)";
     var netValue = document.createElement("span"); netValue.className = "bd-value";
-    netValue.textContent = "¥" + Math.round(net).toLocaleString("ja-JP");
+    netValue.textContent = formatYen(net);
     netRow.appendChild(netLabel); netRow.appendChild(netValue);
     resultWrap.appendChild(netRow);
     resultRow("受け取り予定日(目安)", payoutDate || "-");
@@ -735,10 +1175,98 @@
     return block;
   }
 
+  // ピーター・リンチの銘柄区分別「売りタイミング」チェックリスト(自動判定用)
+  function buildCategoryBlock(s) {
+    var block = document.createElement("div");
+    block.className = "detail-block";
+
+    var label = document.createElement("span");
+    label.className = "detail-label";
+    label.textContent = "銘柄区分と売りシグナル(ピーター・リンチ基準)";
+    block.appendChild(label);
+
+    var select = document.createElement("select");
+    CATEGORY_OPTIONS.forEach(function (c) {
+      var opt = document.createElement("option");
+      opt.value = c; opt.textContent = c || "未分類";
+      if (c === (s.category || "")) opt.selected = true;
+      select.appendChild(opt);
+    });
+    select.addEventListener("change", function () {
+      s.category = select.value;
+      s.sellSignals = []; // 区分が変わると別の項目セットになるため、チェックをリセットする
+      renderAll();
+      if (NOTION_ENABLED) notionUpdate(s.notionId, { "銘柄区分": s.category, "売りシグナル": encodeList(s.sellSignals) });
+    });
+    block.appendChild(select);
+
+    var def = SELL_SIGNALS[s.category];
+    if (!def) {
+      var hint = document.createElement("p");
+      hint.className = "hint";
+      hint.style.margin = "6px 0 0";
+      hint.textContent = "銘柄区分を選ぶと、その区分の「売り」タイミングのチェックリストが表示され、判定に反映されます。";
+      block.appendChild(hint);
+      return block;
+    }
+
+    var intro = document.createElement("p");
+    intro.className = "hint";
+    intro.style.margin = "6px 0 8px";
+    intro.textContent = def.intro;
+    block.appendChild(intro);
+
+    var list = document.createElement("div");
+    list.className = "criteria-list";
+    def.items.forEach(function (signalText) {
+      var row = document.createElement("label");
+      row.className = "criteria-item";
+      var cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.checked = (s.sellSignals || []).indexOf(signalText) !== -1;
+      cb.addEventListener("change", function () {
+        s.sellSignals = s.sellSignals || [];
+        if (cb.checked) {
+          if (s.sellSignals.indexOf(signalText) === -1) s.sellSignals.push(signalText);
+        } else {
+          s.sellSignals = s.sellSignals.filter(function (n) { return n !== signalText; });
+        }
+        renderAll();
+        if (NOTION_ENABLED) notionUpdate(s.notionId, { "売りシグナル": encodeList(s.sellSignals) });
+      });
+      var span = document.createElement("span"); span.textContent = signalText;
+      row.appendChild(cb); row.appendChild(span);
+      list.appendChild(row);
+    });
+    block.appendChild(list);
+    return block;
+  }
+
+  function metricCell(label, value, onChange, threshold, direction) {
+    var td = document.createElement("td");
+    td.setAttribute("data-label", label);
+    var wrap = document.createElement("div");
+    wrap.className = "metric-cell";
+    var input = document.createElement("input");
+    input.type = "number";
+    input.value = value != null ? value : "";
+    input.addEventListener("change", function () {
+      var v = input.value === "" ? null : parseFloat(input.value);
+      onChange(v);
+    });
+    var flag = document.createElement("span");
+    var flagState = metricFlag(value, threshold, direction);
+    flag.className = "metric-flag " + flagState;
+    flag.textContent = flagState === "clear" ? "◎" : (flagState === "miss" ? "×" : "-");
+    wrap.appendChild(input); wrap.appendChild(flag);
+    td.appendChild(wrap);
+    return td;
+  }
+
   function renderStocks() {
     var body = document.getElementById("stockBody");
     body.innerHTML = "";
-    document.getElementById("stockEmpty").style.display = state.stocks.length ? "none" : "block";
+    toggleEmpty("stockEmpty", state.stocks.length > 0);
 
     var sorted = state.stocks.slice().sort(function (a, b) {
       return numericSummary(b).clearCount - numericSummary(a).clearCount;
@@ -754,27 +1282,6 @@
       var tdCodeMarket = document.createElement("td");
       tdCodeMarket.setAttribute("data-label", "コード/市場");
       tdCodeMarket.textContent = (s.code || "-") + " / " + s.market;
-
-      function metricCell(label, value, onChange, threshold, direction) {
-        var td = document.createElement("td");
-        td.setAttribute("data-label", label);
-        var wrap = document.createElement("div");
-        wrap.className = "metric-cell";
-        var input = document.createElement("input");
-        input.type = "number";
-        input.value = value != null ? value : "";
-        input.addEventListener("change", function () {
-          var v = input.value === "" ? null : parseFloat(input.value);
-          onChange(v);
-        });
-        var flag = document.createElement("span");
-        var flagState = metricFlag(value, threshold, direction);
-        flag.className = "metric-flag " + flagState;
-        flag.textContent = flagState === "clear" ? "◎" : (flagState === "miss" ? "×" : "-");
-        wrap.appendChild(input); wrap.appendChild(flag);
-        td.appendChild(wrap);
-        return td;
-      }
 
       var tdPer = metricCell("PER", s.per, function (v) {
         s.per = v; renderAll();
@@ -809,6 +1316,18 @@
         criteriaCount.textContent = "チェック " + (s.customChecked || []).length + "/" + state.criteria.length;
         tdSummary.appendChild(criteriaCount);
       }
+      var sellSummary = sellSignalSummary(s);
+      if (sellSummary) {
+        var sellChip = document.createElement("span");
+        sellChip.className = "summary-chip";
+        sellChip.style.marginTop = "4px";
+        var sellColor = sellSummary.triggered === 0 ? "var(--clear)"
+          : sellSummary.triggered === sellSummary.total ? "var(--miss)" : "var(--partial)";
+        sellChip.style.background = sellColor;
+        sellChip.textContent = "売りシグナル " + sellSummary.triggered + "/" + sellSummary.total + "(" + s.category + ")";
+        tdSummary.appendChild(document.createElement("br"));
+        tdSummary.appendChild(sellChip);
+      }
 
       var tdStatus = document.createElement("td");
       tdStatus.setAttribute("data-label", "手動ステータス");
@@ -826,8 +1345,8 @@
       });
       tdStatus.appendChild(statusSelect);
       var statusDot = document.createElement("span");
-      statusDot.className = "summary-chip"; statusDot.style.background = STATUS_COLOR[s.manualStatus] || "#999";
-      statusDot.style.marginLeft = "6px"; statusDot.textContent = " ";
+      statusDot.className = "summary-chip status-dot"; statusDot.style.background = STATUS_COLOR[s.manualStatus] || "#999";
+      statusDot.textContent = " ";
       tdStatus.appendChild(statusDot);
 
       var tdResearch = document.createElement("td");
@@ -853,11 +1372,7 @@
       var rmBtn = document.createElement("button");
       rmBtn.className = "rm-btn"; rmBtn.type = "button"; rmBtn.textContent = "削除";
       rmBtn.addEventListener("click", function () {
-        state.stocks = state.stocks.filter(function (x) { return x.id !== s.id; });
-        renderAll();
-        if (NOTION_ENABLED) notionSoftDelete(s.notionId).catch(function (err) {
-          setSyncStatus("銘柄の削除の同期に失敗しました(" + (err && err.code) + ")", true);
-        });
+        removeItem("stocks", s, "銘柄");
       });
       tdRm.appendChild(rmBtn);
 
@@ -871,7 +1386,9 @@
         var detailRow = document.createElement("tr");
         detailRow.className = "detail-row";
         var detailCell = document.createElement("td");
-        detailCell.colSpan = 10;
+        detailCell.colSpan = STOCK_TABLE_COLSPAN;
+
+        detailCell.appendChild(buildCategoryBlock(s));
 
         if (state.criteria.length) {
           var criteriaBlock = document.createElement("div");
@@ -948,16 +1465,47 @@
     });
   }
 
+  function seedCategorySelect() {
+    var select = document.getElementById("stockCategory");
+    CATEGORY_OPTIONS.forEach(function (c) {
+      var opt = document.createElement("option"); opt.value = c; opt.textContent = c || "未分類";
+      select.appendChild(opt);
+    });
+  }
+
+  // 「投資の心得」パネル内の売りタイミング一覧を、銘柄ごとのチェックリストと同じ
+  // SELL_SIGNALSデータから生成する(内容を二重管理しない)。一度だけ描画すればよい。
+  function renderLynchSellTimingReference() {
+    var wrap = document.getElementById("lynchSellTimingList");
+    var ul = document.createElement("ul");
+    ul.className = "lynch-list";
+    CATEGORY_OPTIONS.forEach(function (category) {
+      if (!category) return;
+      var def = SELL_SIGNALS[category];
+      var li = document.createElement("li");
+      li.textContent = category + "を売るとき。" + def.intro;
+      var subUl = document.createElement("ul");
+      subUl.className = "lynch-list";
+      def.items.forEach(function (itemText) {
+        var subLi = document.createElement("li");
+        subLi.textContent = itemText;
+        subUl.appendChild(subLi);
+      });
+      li.appendChild(subUl);
+      ul.appendChild(li);
+    });
+    wrap.appendChild(ul);
+  }
+
   function init() {
     seedMarketSelect();
+    seedCategorySelect();
+    renderLynchSellTimingReference();
 
     document.getElementById("saveThresholdsBtn").addEventListener("click", function () {
-      var perRaw = document.getElementById("perThreshold").value;
-      var pbrRaw = document.getElementById("pbrThreshold").value;
-      var divRaw = document.getElementById("divThreshold").value;
-      state.thresholds.per = perRaw === "" ? null : parseFloat(perRaw);
-      state.thresholds.pbr = pbrRaw === "" ? null : parseFloat(pbrRaw);
-      state.thresholds.div = divRaw === "" ? null : parseFloat(divRaw);
+      state.thresholds.per = numOrNull("perThreshold");
+      state.thresholds.pbr = numOrNull("pbrThreshold");
+      state.thresholds.div = numOrNull("divThreshold");
       renderAll();
       saveThresholds();
       setSyncStatus(NOTION_ENABLED ? "基準を保存しました" : "基準を更新しました(ローカルのみ)");
@@ -967,18 +1515,9 @@
       var input = document.getElementById("criteriaInput");
       var name = input.value.trim();
       if (!name || state.criteria.some(function (c) { return c.name === name; })) return;
-      var c = { id: "temp-" + (nextTempId++), notionId: null, name: name };
-      state.criteria.push(c);
+      var c = makeTempItem({ name: name });
       input.value = "";
-      renderAll();
-      if (NOTION_ENABLED) {
-        notionCreate(DS.criteria.id, { "項目名": name }).then(function (res) {
-          var created = res.payload && res.payload.pages && res.payload.pages[0];
-          if (created && created.id) { c.id = created.id; c.notionId = created.id; }
-        }).catch(function (err) {
-          setSyncStatus("チェック項目の追加の同期に失敗しました(" + (err && err.code) + ")", true);
-        });
-      }
+      addAndSync("criteria", c, DS.criteria.id, { "項目名": name }, "チェック項目");
     });
 
     document.getElementById("addSiteBtn").addEventListener("click", function () {
@@ -986,77 +1525,43 @@
       var url = document.getElementById("siteUrl").value.trim();
       var note = document.getElementById("siteNote").value.trim();
       if (!name || !url) return;
-      var s = { id: "temp-" + (nextTempId++), notionId: null, name: name, url: url, note: note };
-      state.sites.push(s);
-      document.getElementById("siteName").value = "";
-      document.getElementById("siteUrl").value = "";
-      document.getElementById("siteNote").value = "";
-      renderAll();
-      if (NOTION_ENABLED) {
-        notionCreate(DS.sites.id, { "名称": name, "userDefined:URL": url, "メモ": note }).then(function (res) {
-          var created = res.payload && res.payload.pages && res.payload.pages[0];
-          if (created && created.id) { s.id = created.id; s.notionId = created.id; }
-        }).catch(function (err) {
-          setSyncStatus("お気に入りサイトの追加の同期に失敗しました(" + (err && err.code) + ")", true);
-        });
-      }
+      var s = makeTempItem({ name: name, url: url, note: note });
+      clearInputs(["siteName", "siteUrl", "siteNote"]);
+      addAndSync("sites", s, DS.sites.id, { "名称": name, "userDefined:URL": url, "メモ": note }, "お気に入りサイト");
     });
 
     document.getElementById("addPointStockBtn").addEventListener("click", function () {
       var name = document.getElementById("psName").value.trim();
       if (!name) return;
-      function numOrNull(id) { var v = document.getElementById(id).value; return v === "" ? null : parseFloat(v); }
-      var p = {
-        id: "temp-" + (nextTempId++), notionId: null,
+      var p = makeTempItem({
         name: name,
         fee: numOrNull("psFee"),
         vouchers: numOrNull("psVouchers"),
-        rate: numOrNull("psRate") || 8,
-        priceLow: numOrNull("psPriceLow") || 8,
-        priceHigh: numOrNull("psPriceHigh") || 11,
+        rate: numOrNull("psRate") || POINT_STOCK_DEFAULT_RATE,
+        priceLow: numOrNull("psPriceLow") || POINT_STOCK_DEFAULT_PRICE_LOW,
+        priceHigh: numOrNull("psPriceHigh") || POINT_STOCK_DEFAULT_PRICE_HIGH,
         note: ""
-      };
-      state.pointStocks.push(p);
-      ["psName", "psFee", "psVouchers", "psRate", "psPriceLow", "psPriceHigh"].forEach(function (id) {
-        document.getElementById(id).value = "";
       });
-      renderAll();
-      if (NOTION_ENABLED) {
-        notionCreate(DS.pointStocks.id, pointStockToProps(p)).then(function (res) {
-          var created = res.payload && res.payload.pages && res.payload.pages[0];
-          if (created && created.id) { p.id = created.id; p.notionId = created.id; }
-        }).catch(function (err) {
-          setSyncStatus("サービスの追加の同期に失敗しました(" + (err && err.code) + ")", true);
-        });
-      }
+      clearInputs(["psName", "psFee", "psVouchers", "psRate", "psPriceLow", "psPriceHigh"]);
+      addAndSync("pointStocks", p, DS.pointStocks.id, pointStockToProps(p), "サービス");
     });
 
     document.getElementById("addStockBtn").addEventListener("click", function () {
       var name = document.getElementById("stockName").value.trim();
       if (!name) return;
-      var s = {
-        id: "temp-" + (nextTempId++), notionId: null,
+      var s = makeTempItem({
         name: name,
         code: document.getElementById("stockCode").value.trim(),
         market: document.getElementById("stockMarket").value || MARKET_OPTIONS[0],
         per: null, pbr: null, div: null,
-        customChecked: [], note: "", manualStatus: MANUAL_STATUS_OPTIONS[0]
-      };
-      state.stocks.push(s);
-      document.getElementById("stockName").value = "";
-      document.getElementById("stockCode").value = "";
-      renderAll();
-      if (NOTION_ENABLED) {
-        notionCreate(DS.stocks.id, stockToProps(s)).then(function (res) {
-          var created = res.payload && res.payload.pages && res.payload.pages[0];
-          if (created && created.id) { s.id = created.id; s.notionId = created.id; }
-        }).catch(function (err) {
-          setSyncStatus("銘柄の追加の同期に失敗しました(" + (err && err.code) + ")", true);
-        });
-      }
+        customChecked: [], note: "", manualStatus: MANUAL_STATUS_OPTIONS[0],
+        category: document.getElementById("stockCategory").value || "",
+        sellSignals: []
+      });
+      clearInputs(["stockName", "stockCode"]);
+      document.getElementById("stockCategory").value = "";
+      addAndSync("stocks", s, DS.stocks.id, stockToProps(s), "銘柄");
     });
-
-    window.addEventListener("resize", function () { /* no canvas to redraw */ });
 
     if (NOTION_ENABLED) {
       setSyncStatus("Notionから読み込んでいます…");
