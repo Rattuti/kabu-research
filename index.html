@@ -123,6 +123,10 @@
   .detail-block { margin-bottom: 12px; }
   .detail-block:last-child { margin-bottom: 0; }
   .detail-label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; }
+  .breakdown-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; font-size: 0.85rem; }
+  .breakdown-row .bd-value { font-weight: 600; }
+  .breakdown-row.bd-total { border-top: 1px solid var(--border); margin-top: 4px; padding-top: 6px; font-weight: 700; }
+  .breakdown-row.bd-total .bd-value { color: var(--accent-dark); }
 
   /* mobile: tables become stacked cards */
   @media (max-width: 600px) {
@@ -486,11 +490,25 @@
         return (id || "").replace(/-/g, "");
       }
 
+      // localStorageはプライベートブラウジングやストレージ制限設定下では
+      // アクセス自体が例外を投げることがあるため、キー取得・保存の失敗が
+      // アプリ全体の初期化を止めないようtry/catchで包む(失敗時はその場限りの
+      // 入力値として扱い、次回もプロンプトが出るだけに留める)。
+      function safeLocalStorageGet(key) {
+        try { return localStorage.getItem(key); } catch (e) { return null; }
+      }
+      function safeLocalStorageSet(key, value) {
+        try { localStorage.setItem(key, value); } catch (e) { /* 保存できなくても致命的ではないので無視 */ }
+      }
+      function safeLocalStorageRemove(key) {
+        try { localStorage.removeItem(key); } catch (e) { /* 同上 */ }
+      }
+
       function getAppKey() {
-        var key = localStorage.getItem(APP_KEY_STORAGE);
+        var key = safeLocalStorageGet(APP_KEY_STORAGE);
         if (!key) {
           key = window.prompt("Notion連携用のアプリキーを入力してください");
-          if (key) localStorage.setItem(APP_KEY_STORAGE, key);
+          if (key) safeLocalStorageSet(APP_KEY_STORAGE, key);
         }
         return key;
       }
@@ -503,7 +521,7 @@
           body: JSON.stringify(body)
         }).then(function (res) {
           if (res.status === 401) {
-            localStorage.removeItem(APP_KEY_STORAGE);
+            safeLocalStorageRemove(APP_KEY_STORAGE);
             return Promise.reject({ code: "unauthorized", message: "アプリキーが正しくありません" });
           }
           if (!res.ok) {
@@ -712,6 +730,14 @@
 
   function notionSoftDelete(pageId) {
     return notionUpdate(pageId, { "削除済み": "__YES__" });
+  }
+
+  // notionUpdateのラッパー。呼び出し側でいちいち.catchを書かなくても、
+  // 失敗時に同期エラーを画面上部(syncStatus)に表示できるようにする。
+  function notionUpdateSafe(pageId, properties, label) {
+    return notionUpdate(pageId, properties).catch(function (err) {
+      setSyncStatus(syncErrorMessage(label + "の更新", err), true);
+    });
   }
 
   // ---------- App state ----------
@@ -946,8 +972,8 @@
       manualStatus: row["手動ステータス"] || MANUAL_STATUS_OPTIONS[0],
       category: category,
       sellSignals: sellSignals,
-      shares: formatNum(row["保有株数"]),
-      avgPrice: formatNum(row["取得単価"]),
+      shares: numericOrNull(row["保有株数"]),
+      avgPrice: numericOrNull(row["取得単価"]),
       acquiredDate: row["date:取得日:start"] || "",
       lastReviewedDate: row["date:最終確認日:start"] || "",
       unlisted: row["未上場"] === "__YES__"
@@ -1264,7 +1290,7 @@
       s.category = select.value;
       s.sellSignals = []; // 区分が変わると別の項目セットになるため、チェックをリセットする
       renderAll();
-      if (NOTION_ENABLED) notionUpdate(s.notionId, { "銘柄区分": s.category, "売りシグナル": encodeList(s.sellSignals) });
+      if (NOTION_ENABLED) notionUpdateSafe(s.notionId, { "銘柄区分": s.category, "売りシグナル": encodeList(s.sellSignals) }, "銘柄");
     });
     block.appendChild(select);
 
@@ -1300,7 +1326,7 @@
           s.sellSignals = s.sellSignals.filter(function (n) { return n !== signalText; });
         }
         renderAll();
-        if (NOTION_ENABLED) notionUpdate(s.notionId, { "売りシグナル": encodeList(s.sellSignals) });
+        if (NOTION_ENABLED) notionUpdateSafe(s.notionId, { "売りシグナル": encodeList(s.sellSignals) }, "銘柄");
       });
       var span = document.createElement("span"); span.textContent = signalText;
       row.appendChild(cb); row.appendChild(span);
@@ -1353,17 +1379,17 @@
 
       var tdPer = metricCell("PER", s.per, function (v) {
         s.per = v; renderAll();
-        if (NOTION_ENABLED) notionUpdate(s.notionId, { "PER": s.per });
+        if (NOTION_ENABLED) notionUpdateSafe(s.notionId, { "PER": s.per }, "銘柄");
       }, state.thresholds.per, "le");
 
       var tdPbr = metricCell("PBR", s.pbr, function (v) {
         s.pbr = v; renderAll();
-        if (NOTION_ENABLED) notionUpdate(s.notionId, { "PBR": s.pbr });
+        if (NOTION_ENABLED) notionUpdateSafe(s.notionId, { "PBR": s.pbr }, "銘柄");
       }, state.thresholds.pbr, "le");
 
       var tdDiv = metricCell("配当利回り%", s.div, function (v) {
         s.div = v; renderAll();
-        if (NOTION_ENABLED) notionUpdate(s.notionId, { "配当利回り": s.div });
+        if (NOTION_ENABLED) notionUpdateSafe(s.notionId, { "配当利回り": s.div }, "銘柄");
       }, state.thresholds.div, "ge");
 
       var tdSummary = document.createElement("td");
@@ -1409,7 +1435,7 @@
       statusSelect.addEventListener("change", function () {
         s.manualStatus = statusSelect.value;
         renderAll();
-        if (NOTION_ENABLED) notionUpdate(s.notionId, { "手動ステータス": s.manualStatus });
+        if (NOTION_ENABLED) notionUpdateSafe(s.notionId, { "手動ステータス": s.manualStatus }, "銘柄");
       });
       tdStatus.appendChild(statusSelect);
       var statusDot = document.createElement("span");
@@ -1479,7 +1505,7 @@
                 s.customChecked = s.customChecked.filter(function (n) { return n !== c.name; });
               }
               renderAll();
-              if (NOTION_ENABLED) notionUpdate(s.notionId, { "カスタムチェック": encodeList(s.customChecked) });
+              if (NOTION_ENABLED) notionUpdateSafe(s.notionId, { "カスタムチェック": encodeList(s.customChecked) }, "銘柄");
             });
             var span = document.createElement("span"); span.textContent = c.name;
             row.appendChild(cb); row.appendChild(span);
@@ -1516,8 +1542,8 @@
             }
             renderAll();
             var propKey = key === "shares" ? "保有株数" : key === "avgPrice" ? "取得単価" : null;
-            if (NOTION_ENABLED && propKey) notionUpdate(s.notionId, { "保有株数": s.shares, "取得単価": s.avgPrice });
-            if (NOTION_ENABLED && key === "acquiredDate") notionUpdate(s.notionId, { "date:取得日:start": s.acquiredDate || null });
+            if (NOTION_ENABLED && propKey) notionUpdateSafe(s.notionId, { "保有株数": s.shares, "取得単価": s.avgPrice }, "銘柄");
+            if (NOTION_ENABLED && key === "acquiredDate") notionUpdateSafe(s.notionId, { "date:取得日:start": s.acquiredDate || null }, "銘柄");
           });
           label.appendChild(input);
           holdingGrid.appendChild(label);
@@ -1537,7 +1563,7 @@
         unlistedCb.addEventListener("change", function () {
           s.unlisted = unlistedCb.checked;
           renderAll();
-          if (NOTION_ENABLED) notionUpdate(s.notionId, { "未上場": s.unlisted ? "__YES__" : "__NO__" });
+          if (NOTION_ENABLED) notionUpdateSafe(s.notionId, { "未上場": s.unlisted ? "__YES__" : "__NO__" }, "銘柄");
         });
         unlistedLabel.appendChild(unlistedCb);
         unlistedLabel.appendChild(document.createTextNode("未上場株(カブアンドなど、証券コードがない場合)"));
@@ -1564,7 +1590,7 @@
         reviewBtn.addEventListener("click", function () {
           s.lastReviewedDate = todayStr();
           renderAll();
-          if (NOTION_ENABLED) notionUpdate(s.notionId, { "date:最終確認日:start": s.lastReviewedDate });
+          if (NOTION_ENABLED) notionUpdateSafe(s.notionId, { "date:最終確認日:start": s.lastReviewedDate }, "銘柄");
         });
         reviewRow.appendChild(reviewText);
         reviewRow.appendChild(reviewBtn);
@@ -1604,7 +1630,7 @@
         noteInput.value = s.note || "";
         noteInput.addEventListener("change", function () {
           s.note = noteInput.value;
-          if (NOTION_ENABLED) notionUpdate(s.notionId, { "メモ": s.note });
+          if (NOTION_ENABLED) notionUpdateSafe(s.notionId, { "メモ": s.note }, "銘柄");
         });
         noteBlock.appendChild(noteLabel);
         noteBlock.appendChild(noteInput);
