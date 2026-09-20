@@ -779,6 +779,7 @@
 
   // 一覧からの削除の共通処理: ローカル状態から取り除いて再描画し、Notion側は論理削除する
   function removeItem(listKey, item, label) {
+    if (!window.confirm(label + "を削除しますか?元に戻せません。")) return;
     state[listKey] = state[listKey].filter(function (x) { return x.id !== item.id; });
     renderAll();
     if (!NOTION_ENABLED) return;
@@ -1440,6 +1441,7 @@
       tdStatus.appendChild(statusSelect);
       var statusDot = document.createElement("span");
       statusDot.className = "summary-chip status-dot"; statusDot.style.background = STATUS_COLOR[s.manualStatus] || "#999";
+      statusDot.setAttribute("aria-hidden", "true");
       statusDot.textContent = " ";
       tdStatus.appendChild(statusDot);
 
