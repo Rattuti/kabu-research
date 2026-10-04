@@ -1281,6 +1281,7 @@
     block.appendChild(label);
 
     var select = document.createElement("select");
+    select.setAttribute("aria-label", "銘柄区分");
     CATEGORY_OPTIONS.forEach(function (c) {
       var opt = document.createElement("option");
       opt.value = c; opt.textContent = c || "未分類";
@@ -1402,7 +1403,7 @@
         : summary.clearCount === summary.knownCount ? "var(--clear)"
         : summary.clearCount === 0 ? "var(--miss)" : "var(--partial)";
       summaryChip.style.background = chipColor;
-      summaryChip.textContent = "数値 " + summary.clearCount + "/" + summary.knownCount;
+      summaryChip.textContent = summary.knownCount === 0 ? "数値基準未設定" : ("数値 " + summary.clearCount + "/" + summary.knownCount);
       tdSummary.appendChild(summaryChip);
       if (state.criteria.length) {
         var criteriaCount = document.createElement("div");
@@ -1428,6 +1429,7 @@
       tdStatus.setAttribute("data-label", "手動ステータス");
       var statusSelect = document.createElement("select");
       statusSelect.className = "status-select";
+      statusSelect.setAttribute("aria-label", "手動ステータス");
       MANUAL_STATUS_OPTIONS.forEach(function (o) {
         var opt = document.createElement("option"); opt.value = o; opt.textContent = o;
         if (o === s.manualStatus) opt.selected = true;
@@ -1712,7 +1714,8 @@
     document.getElementById("addCriteriaBtn").addEventListener("click", function () {
       var input = document.getElementById("criteriaInput");
       var name = input.value.trim();
-      if (!name || state.criteria.some(function (c) { return c.name === name; })) return;
+      if (!name) { window.alert("項目名を入力してください"); return; }
+      if (state.criteria.some(function (c) { return c.name === name; })) { window.alert("同じ名前の項目が既にあります"); return; }
       var c = makeTempItem({ name: name });
       input.value = "";
       addAndSync("criteria", c, DS.criteria.id, { "項目名": name }, "チェック項目");
@@ -1722,7 +1725,7 @@
       var name = document.getElementById("siteName").value.trim();
       var url = document.getElementById("siteUrl").value.trim();
       var note = document.getElementById("siteNote").value.trim();
-      if (!name || !url) return;
+      if (!name || !url) { window.alert("名称とURLを入力してください"); return; }
       var s = makeTempItem({ name: name, url: url, note: note });
       clearInputs(["siteName", "siteUrl", "siteNote"]);
       addAndSync("sites", s, DS.sites.id, { "名称": name, "userDefined:URL": url, "メモ": note }, "お気に入りサイト");
@@ -1730,7 +1733,7 @@
 
     document.getElementById("addPointStockBtn").addEventListener("click", function () {
       var name = document.getElementById("psName").value.trim();
-      if (!name) return;
+      if (!name) { window.alert("サービス名を入力してください"); return; }
       var p = makeTempItem({
         name: name,
         fee: numOrNull("psFee"),
@@ -1821,12 +1824,10 @@
               var created = res.payload && res.payload.pages && res.payload.pages[0];
               if (created && created.id) { s.id = created.id; s.notionId = created.id; }
             }).catch(function (err) {
-              setSyncStatus("銘柄の追加の同期に失敗しました(" + (err && err.code) + ")", true);
+              setSyncStatus(syncErrorMessage("銘柄の追加", err), true);
             });
           } else {
-            notionUpdate(s.notionId, { "PER": s.per, "PBR": s.pbr, "配当利回り": s.div, "コード": s.code, "date:最終確認日:start": s.lastReviewedDate }).catch(function (err) {
-              setSyncStatus("銘柄の更新の同期に失敗しました(" + (err && err.code) + ")", true);
-            });
+            notionUpdateSafe(s.notionId, { "PER": s.per, "PBR": s.pbr, "配当利回り": s.div, "コード": s.code, "date:最終確認日:start": s.lastReviewedDate }, "銘柄");
           }
         }
       });
@@ -1836,7 +1837,7 @@
 
     document.getElementById("addStockBtn").addEventListener("click", function () {
       var name = document.getElementById("stockName").value.trim();
-      if (!name) return;
+      if (!name) { window.alert("銘柄名を入力してください"); return; }
       var s = makeTempItem({
         name: name,
         code: document.getElementById("stockCode").value.trim(),
