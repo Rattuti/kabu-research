@@ -364,7 +364,7 @@
     <p class="desc">数値以外の観点を自由に追加できます(例:「事業内容を理解できる」)。</p>
     <div class="criteria-list" id="criteriaMasterList" style="margin-bottom:8px;"></div>
     <div class="row">
-      <input type="text" id="criteriaInput" placeholder="項目を追加">
+      <input type="text" id="criteriaInput" placeholder="項目を追加" aria-label="チェック項目名">
       <button type="button" class="secondary" id="addCriteriaBtn">追加</button>
     </div>
   </div>
@@ -386,7 +386,7 @@
   <div class="panel">
     <h2>貼り付けで半自動入力</h2>
     <p class="desc">Yahoo!ファイナンスなどの銘柄ページの文章をコピーしてここに貼り付けると、PER・PBR・配当利回りなどを自動で読み取ります(読み取り結果は必ず確認してから反映してください)。</p>
-    <textarea id="pasteArea" placeholder="銘柄ページの文章をここに貼り付け" style="width:100%; min-height:90px; font: inherit; padding:8px; border:1px solid var(--border); border-radius:6px;"></textarea>
+    <textarea id="pasteArea" placeholder="銘柄ページの文章をここに貼り付け" aria-label="銘柄ページの文章" style="width:100%; min-height:90px; font: inherit; padding:8px; border:1px solid var(--border); border-radius:6px;"></textarea>
     <button type="button" id="parsePasteBtn" style="margin-top:8px;">読み取る</button>
     <div id="parseResult" style="margin-top:10px;"></div>
   </div>
@@ -1751,7 +1751,13 @@
       var text = document.getElementById("pasteArea").value;
       var resultEl = document.getElementById("parseResult");
       resultEl.innerHTML = "";
-      if (!text.trim()) return;
+      if (!text.trim()) {
+        var emptyEl = document.createElement("p");
+        emptyEl.className = "hint";
+        emptyEl.textContent = "テキストが貼り付けられていません。";
+        resultEl.appendChild(emptyEl);
+        return;
+      }
       var parsed = parsePastedStockText(text);
       var found = ["per", "pbr", "div", "price", "code", "name"].some(function (k) { return parsed[k] != null; });
       if (!found) {
