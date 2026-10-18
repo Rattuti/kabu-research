@@ -162,7 +162,7 @@
   <div>
     <h1>株式調査ノート</h1>
     <p class="subtitle">銘柄のPER・PBR・配当利回りを記録し、自分の基準で整理します。</p>
-    <p class="hint" id="syncStatus" style="margin-top:0;"></p>
+    <p class="hint" id="syncStatus" style="margin-top:0;" role="status" aria-live="polite"></p>
     <p class="disclaimer">投資助言ではありません。判定は自分で入力した数値と自分の基準を比較しただけです。投資判断は自己責任でお願いします。</p>
   </div>
 
@@ -1345,6 +1345,7 @@
     wrap.className = "metric-cell";
     var input = document.createElement("input");
     input.type = "number";
+    input.setAttribute("aria-label", label);
     input.value = value != null ? value : "";
     input.addEventListener("change", function () {
       var v = input.value === "" ? null : parseFloat(input.value);
