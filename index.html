@@ -421,6 +421,7 @@
       <label>換算レート(枚/株)<input type="number" id="psRate" placeholder="例: 8"></label>
       <label>発行価格下限(円)<input type="number" id="psPriceLow" placeholder="例: 8"></label>
       <label>発行価格上限(円)<input type="number" id="psPriceHigh" placeholder="例: 11"></label>
+      <label>メモ(任意)<input type="text" id="psNote" placeholder="任意"></label>
     </div>
     <button type="button" id="addPointStockBtn">追加</button>
     <div class="table-wrap">
@@ -1130,6 +1131,13 @@
 
       var tdName = document.createElement("td");
       tdName.className = "name-cell"; tdName.textContent = p.name;
+      if (p.note) {
+        var psNoteEl = document.createElement("span");
+        psNoteEl.className = "site-note";
+        psNoteEl.style.display = "block";
+        psNoteEl.textContent = p.note;
+        tdName.appendChild(psNoteEl);
+      }
 
       var tdFee = document.createElement("td");
       tdFee.setAttribute("data-label", "年会費");
@@ -1742,9 +1750,9 @@
         rate: numOrNull("psRate") || POINT_STOCK_DEFAULT_RATE,
         priceLow: numOrNull("psPriceLow") || POINT_STOCK_DEFAULT_PRICE_LOW,
         priceHigh: numOrNull("psPriceHigh") || POINT_STOCK_DEFAULT_PRICE_HIGH,
-        note: ""
+        note: document.getElementById("psNote").value.trim()
       });
-      clearInputs(["psName", "psFee", "psVouchers", "psRate", "psPriceLow", "psPriceHigh"]);
+      clearInputs(["psName", "psFee", "psVouchers", "psRate", "psPriceLow", "psPriceHigh", "psNote"]);
       addAndSync("pointStocks", p, DS.pointStocks.id, pointStockToProps(p), "サービス");
     });
 
@@ -1810,6 +1818,7 @@
             market: MARKET_OPTIONS[0],
             per: null, pbr: null, div: null,
             customChecked: [], note: "", manualStatus: MANUAL_STATUS_OPTIONS[0],
+            category: "", sellSignals: [],
             shares: null, avgPrice: null, acquiredDate: "", lastReviewedDate: "", unlisted: false
           };
           state.stocks.push(s);
