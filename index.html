@@ -752,6 +752,17 @@
   var expandedStocks = {};
   var nextTempId = 1;
 
+  // Notion同期が完了してstock.idが一時ID(temp-N)から本来のNotionページIDへ
+  // 差し替わる際、展開中(詳細表示)の状態もこのID変更に追従させる。
+  // これをしないと、追加直後に詳細を開いた状態で同期が完了すると、次の
+  // 再描画(他の項目の編集など)で詳細が理由もなく勝手に閉じてしまう。
+  function reassignExpandedId(oldId, newId) {
+    if (oldId !== newId && expandedStocks[oldId]) {
+      expandedStocks[newId] = true;
+      delete expandedStocks[oldId];
+    }
+  }
+
   function numericOrNull(n) { return (typeof n === "number" && !isNaN(n)) ? n : null; }
 
   function syncErrorMessage(prefix, err) {
@@ -796,7 +807,11 @@
     if (!NOTION_ENABLED) return;
     notionCreate(dsId, props).then(function (res) {
       var created = res.payload && res.payload.pages && res.payload.pages[0];
-      if (created && created.id) { item.id = created.id; item.notionId = created.id; }
+      if (created && created.id) {
+        var oldId = item.id;
+        item.id = created.id; item.notionId = created.id;
+        if (listKey === "stocks") reassignExpandedId(oldId, created.id);
+      }
     }).catch(function (err) {
       setSyncStatus(syncErrorMessage(label + "の追加", err), true);
     });
@@ -1838,7 +1853,11 @@
           if (targetId === "__new__") {
             notionCreate(DS.stocks.id, stockToProps(s)).then(function (res) {
               var created = res.payload && res.payload.pages && res.payload.pages[0];
-              if (created && created.id) { s.id = created.id; s.notionId = created.id; }
+              if (created && created.id) {
+                var oldId = s.id;
+                s.id = created.id; s.notionId = created.id;
+                reassignExpandedId(oldId, created.id);
+              }
             }).catch(function (err) {
               setSyncStatus(syncErrorMessage("銘柄の追加", err), true);
             });
