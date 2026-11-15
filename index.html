@@ -1479,7 +1479,12 @@
       var researchHint = document.createElement("span");
       researchHint.className = "hint";
       researchHint.style.margin = "0";
+      researchHint.style.cursor = "pointer";
       researchHint.textContent = "詳細へ →";
+      researchHint.addEventListener("click", function () {
+        expandedStocks[s.id] = !expandedStocks[s.id];
+        renderAll();
+      });
       tdResearch.appendChild(researchHint);
 
       var tdExpand = document.createElement("td");
